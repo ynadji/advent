@@ -1,7 +1,3 @@
-:- use_module(library(clpfd)).
-:- use_module(library(csv)).
-:- use_module(library(statistics)).
-
 ['../prolog/utils'].
 
 read_input(Nums, Boards) :-

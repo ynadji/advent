@@ -1,4 +1,6 @@
-use_module(library(pio)).
+:- use_module(library(clpfd)).
+:- use_module(library(statistics)).
+:- use_module(library(pio)).
 
 % Voodoo I don't understand yet.
 lines([])           --> call(eos), !.
