@@ -1,6 +1,6 @@
 /*
-For each point (X, Y) we add the fact covers(X, Y) to the DB (using assertz).
-To get the solution, we simply ask the DB how many times we have covers(_, _)
+For each point (X, Y) we add the fact `covers(X, Y)` to the DB (using `assertz`).
+To get the solution, we simply ask the DB how many times we have `covers(_, _)`
 that occur more than once (see `overlaps`). Some interesting things I learned:
 
 - originally I was just using `between(X1, X2, X) ; between(X2, X1, X)` inside
@@ -8,6 +8,14 @@ that occur more than once (see `overlaps`). Some interesting things I learned:
 doing `findall` in the solution clause, it blew out the stack.
 - `assertz` is awesome! Generating facts from strings is quite powerful.
 - My solution has multiple results (and they increase) and I don't know why :(.
+
+?- solution_05_02(Count).
+Count = 17882 ;
+Count = 17882 ;
+Count = 17882 ;
+Count = 17883 ;
+Count = 17883
+
 */
 ['../prolog/utils'].
 
