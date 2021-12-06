@@ -72,6 +72,7 @@ draw_lines([Points|Rest]) :-
     draw_lines(Rest).
 
 solution_05_01(Count) :-
+    retractall(covers(_, _)),
     slurp(Lines, '05/input.txt'),
     maplist(split_points, Lines, PointsList),
     include(horizontal_or_vertical, PointsList, HOVPoints),
@@ -79,6 +80,7 @@ solution_05_01(Count) :-
     aggregate_all(count, overlaps, Count).
 
 solution_05_02(Count) :-
+    retractall(covers(_, _)),
     slurp(Lines, '05/input.txt'),
     maplist(split_points, Lines, PointsList),
     draw_lines(PointsList),
