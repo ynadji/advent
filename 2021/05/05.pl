@@ -1,3 +1,14 @@
+/*
+For each point (X, Y) we add the fact covers(X, Y) to the DB (using assertz).
+To get the solution, we simply ask the DB how many times we have covers(_, _)
+that occur more than once (see `overlaps`). Some interesting things I learned:
+
+- originally I was just using `between(X1, X2, X) ; between(X2, X1, X)` inside
+`draw_line`, but then only the first solution would go through. When I tried
+doing `findall` in the solution clause, it blew out the stack.
+- `assertz` is awesome! Generating facts from strings is quite powerful.
+- My solution has multiple results (and they increase) and I don't know why :(.
+*/
 ['../prolog/utils'].
 
 split_points(Line, Points) :-
