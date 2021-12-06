@@ -72,14 +72,14 @@ draw_lines([Points|Rest]) :-
     draw_lines(Rest).
 
 solution_05_01(Count) :-
-    slurp(Lines, '/home/yacin/code/advent/2021/05/input.txt'),
+    slurp(Lines, '05/input.txt'),
     maplist(split_points, Lines, PointsList),
     include(horizontal_or_vertical, PointsList, HOVPoints),
     draw_lines(HOVPoints),
     aggregate_all(count, overlaps, Count).
 
 solution_05_02(Count) :-
-    slurp(Lines, '/home/yacin/code/advent/2021/05/input.txt'),
+    slurp(Lines, '05/input.txt'),
     maplist(split_points, Lines, PointsList),
     draw_lines(PointsList),
     aggregate_all(count, overlaps, Count).
