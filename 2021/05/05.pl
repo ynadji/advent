@@ -68,7 +68,7 @@ draw_line([X1, Y1, X2, Y2]) :-
 
 draw_lines([]).
 draw_lines([Points|Rest]) :-
-    draw_line(Points),
+    draw_line(Points), !,
     draw_lines(Rest).
 
 solution_05_01(Count) :-
