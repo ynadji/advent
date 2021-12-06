@@ -65,3 +65,17 @@ solution_06_02(NumFish) :-
     split_string(Line, ',', '', NumChars),
     maplist(atom_number, NumChars, Fish),
     fast_breed(Fish, NumFish, 256).
+
+fast_and_clean(NumFish, Buckets, 0) :- sum_list(Buckets, NumFish).
+fast_and_clean(NumFish, [B0, B1, B2, B3, B4, B5, B6, B7, B8], N) :-
+    N_ #= N - 1,
+    N6 #= B7 + B0,
+    fast_and_clean(NumFish, [B1, B2, B3, B4, B5, B6, N6, B8, B0], N_).
+
+solution_06_02_new(NumFish) :-
+    slurp(Line_, '06/input.txt'),
+    nth1(1, Line_, Line),
+    split_string(Line, ',', '', NumChars),
+    maplist(atom_number, NumChars, Fish),
+    fish_buckets(Fish, Buckets),
+    fast_and_clean(NumFish, Buckets, 256).
