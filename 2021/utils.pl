@@ -1,6 +1,8 @@
 :- use_module(library(clpfd)).
 :- use_module(library(statistics)).
 :- use_module(library(pio)).
+:- use_module(library(lists)).
+:- use_module(library(reif)).
 
 % Voodoo I don't understand yet.
 lines([])           --> call(eos), !.
@@ -44,20 +46,3 @@ list_length(Size, List) :- length(List, Size).
 split_list(List, SubSize, SubLists) :-
     maplist(list_length(SubSize), SubLists),
     append(SubLists, List).
-
-% Copy/pasted from https://www.swi-prolog.org/pldoc/doc/_SWI_/library/lists.pl?show=src#clumped/2
-% because my version of prolog is too old.
-clumped(Items, Counts) :-
-    clump(Items, Counts).
-
-clump([], []).
-clump([H|T0], [H-C|T]) :-
-    ccount(T0, H, T1, 1, C),
-    clump(T1, T).
-
-ccount([H|T0], E, T, C0, C) :-
-    E == H,
-    !,
-    C1 is C0+1,
-    ccount(T0, E, T, C1, C).
-ccount(List, _, List, C, C).
