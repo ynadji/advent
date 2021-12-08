@@ -24,7 +24,7 @@ x_and_y([["up", Mag]|Rest], X, Y) :-
 % solution_02_01(Prod).
 % Prod = 2073315
 solution_02_01(Prod) :-
-    read_input(CaM, 'input.txt'),
+    read_input(CaM, '02/input.txt'),
     x_and_y(CaM, X, Y),
     Prod is X * Y.
 
@@ -45,7 +45,7 @@ x_and_y_with_aim([["down", Mag]|Rest], X, Y, Aim) :-
 % solution_02_02(Prod).
 % Prod = 1840311528
 solution_02_02(Prod) :-
-    read_input(CaM, 'input.txt'),
+    read_input(CaM, '02/input.txt'),
     % you needed to reverse this list, otherwise the update to Aim happened
     % _before_ subsequent products. this is uhh an ugly solution.
     reverse(CaM, MaC),

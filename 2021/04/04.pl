@@ -1,7 +1,7 @@
 ['../prolog/utils'].
 
 read_input(Nums, Boards) :-
-    slurp([NumLine|Lines], 'input.txt'),
+    slurp([NumLine|Lines], '04/input.txt'),
     split_string(NumLine, ',', '', NumChars),
     maplist(atom_number, NumChars, Nums),
     exclude(=(''), Lines, CleanLines),

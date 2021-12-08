@@ -16,7 +16,7 @@ count_increases([X,Y|Rest], C) :-
 % solution_01_01(X).
 % X = 1688
 solution_01_01(X) :-
-    numbers_from_file(Ns, 'input.txt'),
+    numbers_from_file(Ns, '01/input.txt'),
     count_increases(Ns, X).
 
 % count_increases_3sum([199,200,208,210,200,207,240,269,260,263], X).
@@ -35,5 +35,5 @@ count_increases_3sum([W,X,Y,Z|Rest], C) :-
 % solution_01_02(X).
 % X = 1728
 solution_01_02(X) :-
-    numbers_from_file(Ns, 'input.txt'),
+    numbers_from_file(Ns, '01/input.txt'),
     count_increases_3sum(Ns, X).
