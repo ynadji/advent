@@ -36,7 +36,7 @@ most_and_least_common_bits(Nums, Most, Least) :-
     maplist(tib, Prop, Least).
 
 solution_03_01(Foo) :-
-    read_input(Nums, 'input.txt'),
+    read_input(Nums, '03/input.txt'),
     most_and_least_common_bits(Nums, Most, Least),
     reverse(Most, Bits),
     reverse(Least, Stib),
@@ -145,7 +145,7 @@ solve2(Nums, Bits, CO2, Last) :-
     bin2int(Stib, 0, CO2).
 
 solution_03_02(LifeSupport) :-
-    read_input(Nums, 'input.txt'),
+    read_input(Nums, '03/input.txt'),
     solve(Nums, _, Oxygen),
     solve2(Nums, _, CO2, Nums11),
     LifeSupport is Oxygen * CO2.
