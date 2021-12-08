@@ -3,6 +3,7 @@
 :- use_module(library(pio)).
 :- use_module(library(lists)).
 :- use_module(library(reif)).
+:- use_module(library(lambda)).
 
 % Voodoo I don't understand yet.
 lines([])           --> call(eos), !.
