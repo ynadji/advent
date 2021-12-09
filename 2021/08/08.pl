@@ -1,5 +1,9 @@
 ['../prolog/utils'].
 
+split_input(Line, Output) :-
+    split_string(Line, '|', ' ', Fields),
+    nth1(1, Fields, Output).
+
 split_output(Line, Output) :-
     split_string(Line, '|', ' ', Fields),
     nth1(2, Fields, Output).
@@ -56,6 +60,18 @@ index('d', 4).
 index('e', 5).
 index('f', 6).
 index('g', 7).
+deindex(C, N) :- index(N, C).
+
+segments("abcefg",  '0').
+segments("cf",      '1').
+segments("acdeg",   '2').
+segments("acdfg",   '3').
+segments("bcdf",    '4').
+segments("abdfg",   '5').
+segments("abdefg",  '6').
+segments("acf",     '7').
+segments("abcdefg", '8').
+segments("abcdfg",  '9').
 
 ugh(L, Pred, Chars) :-
     maplist(index, Chars, Indices),
@@ -73,6 +89,31 @@ predicates(L, [Pred|Preds], [Seg|Segments]) :-
     string_chars(Seg, Chars),
     ugh(L, Pred, Chars),
     predicates(L, Preds, Segments).
+
+nth1L(L, Index, X) :- nth1(Index, L, X).
+
+decode(L, BadSegment, Num) :-
+    string_chars(BadSegment, Chars),
+    maplist(index, Chars, BadNums),
+    maplist(nth1L(L), BadNums, Nums),
+    maplist(deindex, Nums, GoodChars),
+    msort(GoodChars, GoodCharsSorted),
+    string_chars(Seg, GoodCharsSorted),
+    segments(Seg, Num).
+
+% ["acedgfb", "cdfbe", "gcdfa", "fbcad", "dab", "cefabd", "cdfgeb", "eafb", "cagedb", "ab"]
+% ["cdfeb", "fcadb", "cdfeb", "cdbaf"]
+%
+% [["be", "cfbegad", "cbdgef", "fgaecd", "cgeb", "fdcge", "agebfd", "fecdb", "fabcd", "edb"],["edbfga", "begcd", "cbg", "gc", "gcadebf", "fbgde", "acbgfd", "abcde", "gfcbed", "gfec"],["fgaebd", "cg", "bdaec", "gdafb", "agbcfd", "gdcbef", "bgcad", "gfac", "gcb", "cdgabef"],["fbegcd", "cbd", "adcefb", "dageb", "afcb", "bc", "aefdc", "ecdab", "fgdeca", "fcdbega"],["aecbfdg", "fbg", "gf", "bafeg", "dbefa", "fcge", "gcbea", "fcaegb", "dgceab", "fcbdga"],["fgeab", "ca", "afcebg", "bdacfeg", "cfaedg", "gcfdb", "baec", "bfadeg", "bafgc", "acf"],["dbcfg", "fgd", "bdegcaf", "fgec", "aegbdf", "ecdfab", "fbedc", "dacgb", "gdcebf", "gf"],["bdfegc", "cbegaf", "gecbf", "dfcage", "bdacg", "ed", "bedf", "ced", "adcbefg", "gebcd"],["egadfb", "cdbfeg", "cegd", "fecab", "cgb", "gbdefca", "cg", "fgcdab", "egfdb", "bfceg"],["gcafb", "gcf", "dcaebfg", "ecagb", "gf", "abcdeg", "gaef", "cafbge", "fdbac", "fegbdc"]]
+% [["fdgacbe", "cefdb", "cefbgd", "gcbe"],["fcgedb", "cgb", "dgebacf", "gc"],["cg", "cg", "fdcagb", "cbg"],["efabcd", "cedba", "gadfec", "cb"],["gecf", "egdcabf", "bgf", "bfgea"],["gebdcfa", "ecba", "ca", "fadegcb"],["cefg", "dcbef", "fcge", "gbcadfe"],["ed", "bcgafe", "cdgba", "cbgef"],["gbdfcae", "bgc", "cg", "cgb"],["fgae", "cfgab", "fg", "bagce"]]
+map_and_decode(Signal, Output, Num) :-
+    L = [A, B, C, D, E, F, G],
+    predicates(L, Preds, Signal),
+    maplist(call, Preds),
+    all_distinct(L),
+    maplist(decode(L), Output, CharNums),
+    string_chars(NumStr, CharNums),
+    atom_number(NumStr, Num).
 
 % one
 map([C, F]) :-
@@ -109,3 +150,12 @@ map([A, B, D, E, F, G]) :-
 % nine
 map([A, B, C, D, F, G]) :-
     [A, B, C, D, F, G] ins 1..4 \/ 6..7.
+
+solution_08_02(Sum) :-
+    slurp(Lines, '08/input.txt'),
+    maplist(split_output, Lines, Outputs0),
+    maplist(split_input, Lines, Inputs0),
+    maplist(split_str, Inputs0, Signals),
+    maplist(split_str, Outputs0, Outputs),
+    maplist(map_and_decode, Signals, Outputs, Nums),
+    sum_list(Nums, Sum).
