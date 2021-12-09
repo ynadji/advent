@@ -73,21 +73,21 @@ segments("acf",     '7').
 segments("abcdefg", '8').
 segments("abcdfg",  '9').
 
-ugh(L, Pred, Chars) :-
+terms_and_indices(L, Pred, Chars) :-
     maplist(index, Chars, Indices),
-    ugh_(L, Variables, Indices),
+    terms_and_indices_(L, Variables, Indices),
     append([map], [Variables], TermList),
     Pred =.. TermList.
 
-ugh_(L, [], []).
-ugh_(L, [Term|Terms], [Index|Indices]) :-
+terms_and_indices_(L, [], []).
+terms_and_indices_(L, [Term|Terms], [Index|Indices]) :-
     nth1(Index, L, Term),
-    ugh_(L, Terms, Indices).
+    terms_and_indices_(L, Terms, Indices).
 
 predicates(L, [], []).
 predicates(L, [Pred|Preds], [Seg|Segments]) :-
     string_chars(Seg, Chars),
-    ugh(L, Pred, Chars),
+    terms_and_indices(L, Pred, Chars),
     predicates(L, Preds, Segments).
 
 nth1L(L, Index, X) :- nth1(Index, L, X).
