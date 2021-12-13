@@ -5,9 +5,9 @@ year or not.
 
 ## 2021
 
-I'd like to get better at Prolog so I'm going to try to do it all in Prolog.
-When a solution lead me to learn something interesting or useful about Prolog,
-I'll include it in a list below. Sometimes those examples will have a comment at
+I've always wanted to improve my Prolog, so let's try to use it for AoC!
+When a solution led me to learn something interesting or useful about Prolog,
+I'll include it in the list below. Sometimes those examples will have a comment at
 the beginning of the file explaining the approach and what I learned. A resource
 I found myself revisiting constantly was Markus Triska's excellent [The Power of
 Prolog](https://www.metalevel.at/prolog) page. If you're interested in getting
@@ -29,5 +29,5 @@ SWI-Prolog version 8.4.1 for x86_64-linux
 - Using `assertz/1` and [counting the predicates](./2021/05/05.pl) or [storing intermediate results](./2021/10/10.pl). The latter is particularly helpful when base cases that result in failure has generated intermediate data that the caller needs.
 - Using CLP(FD) for [constraint solving](./2021/08/08.pl).
 - A hacky way to map a character to a variable named by [the same letter](./2021/08/08.pl).
-- Some [examples](./04/04.pl) of [using](./10/10.pl) `profile/1`.
+- Some [examples](./2021/04/04.pl) of [using](./2021/10/10.pl) `profile/1`.
 - I haven't used it yet in a solution, but [difference lists and queues](./2021/queue.pl) will likely be needed at some point.
