@@ -5,12 +5,29 @@
 :- use_module(library(reif)).
 :- use_module(library(lambda)).
 
-% Voodoo I don't understand yet.
+/*
+Haven't figured out how to do this appropriately. I do a lot of needless
+conversions between codes/chars/strings. It would be nice to just treat the
+strings as a list of characters as described in https://www.metalevel.at/prolog/data
+Various things seem to break but I'll leave commented out bits to describe my
+current half solutions.
+*/
+%:- set_prolog_flag(double_quotes, chars).
+% Opposite of above.
+%:- set_prolog_flag(double_quotes, codes).
+% This actually seems to be the one that makes solution_08_02 not fail.
+%:- set_prolog_flag(double_quotes, string).
+
+% Voodoo I don't understand yet. Stolen from https://stackoverflow.com/a/4805709/5586983
 lines([])           --> call(eos), !.
 lines([Line|Lines]) --> line(Line), lines(Lines).
 
 eos([], []).
 
+% [10] means "\n" here. Kinda works for :- set_prolog_flag(double_quotes, chars).
+%
+% line([])     --> ( [10] ; call(eos) ), !.
+% [10] means "\n" here
 line([])     --> ( "\n" ; call(eos) ), !.
 line([L|Ls]) -->
     [L], line(Ls).
