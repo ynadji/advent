@@ -41,8 +41,8 @@ split_dash(X, U, V) :-
 
 assert_edges([], []).
 % Order matters. You need to duplicate the non-start/end edges (so they are
-% undirected), but duplicating the start/end edges causes duplicate edges in
-% the above formulation. This is because you don't check nor add "small" or "end
+% undirected), but duplicating the start/end edges causes duplicate edges in the
+% above formulation. This is because you don't check nor add "small" or "end"
 % into SmallVisited. A nice little hack is to ensure "start" is always in the
 % left side of edge/2, and "end" is always in the right side.
 assert_edges(Us, ["start"|Vs]) :- assert_edges(["start"|Vs], Us).
