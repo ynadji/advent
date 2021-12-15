@@ -9,6 +9,9 @@
 big(Cave) :- string_upper(Cave, Upper), Cave = Upper.
 small(Cave) :- \+ big(Cave).
 
+% TODO: Try to do this without assertz/1? Take a look at this:
+% https://www.cpp.edu/~jrfisher/www/prolog_tutorial/2_15.html
+
 path_(U, "end", Path, First, _) :-
     edge(U, "end"),
     Pred =.. [route, First, "end", Path],
@@ -27,6 +30,23 @@ path_(U, V, Path, First, SmallVisited) :-
 
 path(U, V) :-
     path_(U, V, [], U, []).
+
+% Traverse the graph and "return" the Path
+connected(X,Y) :- edge(X,Y).
+connected(X,Y) :- edge(Y,X).
+
+path2(A,B,Path) :-
+    travel(A,B,[A],Q),
+    reverse(Q,Path).
+
+travel(A,B,P,[B|P]) :-
+    connected(A,B).
+travel(A,B,Visited,Path) :-
+    connected(A,C),
+    C \== B,
+    \+member(C,Visited),
+    travel(C,B,[C|Visited],Path).
+% end others' code
 
 cleanup :-
     retractall(edge(_, _)),
