@@ -6,6 +6,10 @@
            :day-03
            :day-04))
 
+;; didn't seem to do much for these early ones.
+;;(declaim (optimize (speed 3) (safety 0)))
+
+
 ;;;; TODOs
 ;;;; - refactoring
 ;;;; - figure out dictionary library
