@@ -5,3 +5,9 @@
            :day-02
            :day-03
            :day-04))
+
+;;;; TODOs
+;;;; - refactoring
+;;;; - figure out dictionary library
+;;;; - can i make a default dict somehow?
+;;;; 
