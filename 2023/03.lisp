@@ -1,3 +1,4 @@
+(in-package :aoc2023)
 (ql:quickload :str)
 (ql:quickload :uiop)
 (ql:quickload :arrow-macros)
