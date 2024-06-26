@@ -65,7 +65,7 @@
     (coerce 'string)
     (parse-integer)))
 
-(defun solve-03-part-1 (input-file)
+(defun solve-day-03 (input-file)
   (let* ((A (read-schematic-from-file input-file))
          (nrow (array-dimension A 0))
          (ncol (array-dimension A 1))
@@ -105,3 +105,7 @@
               (remove-if-not (lambda (x) (= 2 (length x))))
               (mapcar (lambda (xy) (apply #'* xy)))
               (apply #'+)))))
+
+(defun day-03 ()
+  (let ((f #p"03-input.txt"))
+    (solve-day-03 f)))

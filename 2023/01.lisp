@@ -1,4 +1,4 @@
-(ql:quickload "str")
+(ql:quickload :str)
 
 (defun find-calibration-value (string)
   (let* ((digits (loop for x across string when (digit-char-p x) collect x))
@@ -6,20 +6,11 @@
          (last (first (last digits))))
     (parse-integer (format nil "~a~a" first last))))
 
-(defun part-1 (input-file)
+(defun day-01-part-1 (input-file)
   (with-open-file (stream input-file)
     (loop for line = (read-line stream nil)
           while line
           sum (find-calibration-value line))))
-
-(defvar *test-case-2*
-  '("two1nine"
-    "eightwothree"
-    "abcone2threexyz"
-    "xtwone3four"
-    "4nineeightseven2"
-    "zoneight234"
-    "7pqrstsixteen"))
 
 (defun find-word (string)
   (cond ((str:starts-with? "one" string)   "1")
@@ -50,8 +41,13 @@
          (last (first (last digits))))
     (parse-integer (format nil "~a~a" first last))))
 
-(defun part-2 (input-file)
+(defun day-01-part-2 (input-file)
   (with-open-file (stream input-file)
     (loop for line = (read-line stream nil)
           while line
           sum (find-calibration-value-2 line))))
+
+(defun day-01 ()
+  (let ((f #p"01-input.txt"))
+    (values (day-01-part-1 f)
+            (day-01-part-2 f))))
