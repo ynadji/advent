@@ -1,5 +1,4 @@
 (in-package :aoc2023)
-(ql:quickload :str)
 
 (defun find-calibration-value (string)
   (let* ((digits (loop for x across string when (digit-char-p x) collect x))

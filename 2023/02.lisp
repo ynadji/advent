@@ -1,5 +1,4 @@
 (in-package :aoc2023)
-(ql:quickload :str)
 
 (defvar *loaded-1* '(("red" . 12) ("green" . 13) ("blue" . 14)))
 
