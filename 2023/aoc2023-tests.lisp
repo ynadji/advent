@@ -13,9 +13,6 @@
 
 (in-package :test-aoc2023)
 
-;;(ql:quickload :fiveam)
-;;(use-package '(:fiveam))
-
 (def-suite aoc2023)
 (in-suite aoc2023)
 

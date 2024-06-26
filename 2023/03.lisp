@@ -1,12 +1,9 @@
 (in-package :aoc2023)
-(ql:quickload :str)
-(ql:quickload :uiop)
-(ql:quickload :arrow-macros)
 
 (defstruct gear pos numbers)
 
 (defun read-schematic-from-file (f)
-  (let ((lists (arrow-macros:->> f
+  (let ((lists (->> f
                  (uiop:read-file-lines)
                  (mapcar #'(lambda (row) (append (coerce row 'list) '(#\.)))))))
     (make-array (list (length lists)
@@ -14,7 +11,7 @@
                 :initial-contents lists)))
 
 (defun schematic-from-string (s)
-  (let ((tmp (arrow-macros:->> s
+  (let ((tmp (->> s
                (str:split #\Newline)
                (mapcar #'(lambda (row) (append (coerce row 'list) '(#\.)))))))
     (make-array (list (length tmp)
@@ -48,20 +45,20 @@
 (defun not-number? (c) (not (number? c)))
 
 (defun symbol-neighbors (A i j)
-  (arrow-macros:->> (neighbors A i j)
+  (->> (neighbors A i j)
     (mapcar #'(lambda (ij) (aref A (car ij) (cdr ij))))))
 
 (defun symbol-neighbors? (A i j)
   (some #'symbol? (symbol-neighbors A i j)))
 
 (defun gear-neighbors-pos (A i j)
-  (arrow-macros:->> (neighbors A i j)
+  (->> (neighbors A i j)
     (mapcar #'(lambda (ij) (cons ij (aref A (car ij) (cdr ij)))))
     (remove-if-not (lambda (x) (eq #\* (cdr x))))
     (mapcar #'first)))
 
 (defun rev-digits-to-num (curr-number-rev)
-  (arrow-macros:-> curr-number-rev
+  (-> curr-number-rev
     (reverse)
     (coerce 'string)
     (parse-integer)))
@@ -101,7 +98,7 @@
                (setq symbol-adjacent? nil)
                (setq adjacent-gears nil)))))))
     (values (apply #'+ numbers)
-            (arrow-macros:->> gears
+            (->> gears
               (mapcar #'gear-numbers)
               (remove-if-not (lambda (x) (= 2 (length x))))
               (mapcar (lambda (xy) (apply #'* xy)))
