@@ -31,3 +31,16 @@ SWI-Prolog version 8.4.1 for x86_64-linux
 - A hacky way to map a character to a variable named by [the same letter](./2021/08/08.pl).
 - Some [examples](./2021/04/04.pl) of [using](./2021/10/10.pl) `profile/1`.
 - I haven't used it yet in a solution, but [difference lists and queues](./2021/queue.pl) will likely be needed at some point.
+
+## 2023
+
+I started this in `awk/bash` but quickly bailed. Working through the exercises
+again but this time in Common Lisp. All solutions written/tested with SBCL:
+
+```
+¡ sbcl --version
+SBCL 2.4.1
+```
+
+### Helpful Links
+- https://lispcookbook.github.io/cl-cookbook/
