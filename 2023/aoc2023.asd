@@ -7,10 +7,11 @@
   :components ((:file "pkg")
                (:file "01")
                (:file "02")
-               (:file "03"))
-  :in-order-to ((test-op (test-op :aoc2023.test))))
+               (:file "03")
+               (:file "04"))
+  :in-order-to ((test-op (test-op :aoc2023/test))))
 
-(asdf:defsystem :aoc2023.test
+(asdf:defsystem :aoc2023/test
   :author "Yacin Nadji <ynadji@gmail.com>"
   :license "MIT"
   :depends-on ("aoc2023" "fiveam")
