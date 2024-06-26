@@ -1,4 +1,4 @@
-(ql:quickload "str")
+(ql:quickload :str)
 
 (defvar *loaded-1* '(("red" . 12) ("green" . 13) ("blue" . 14)))
 
@@ -22,7 +22,7 @@
         game-id
         0)))
 
-(defun part-2-aux (line)
+(defun day-02-part-2-aux (line)
   (let* ((stripped (str:replace-first "Game " "" line))
          (split (str:split "[:,;] " stripped :regex T))
          (pulls (mapcar #'split-subset (cdr split)))
@@ -31,14 +31,19 @@
                      collect (loop for (c . n) in (remove-if-not #'(lambda (x) (string= x color)) pulls :key #'car)
                                    maximizing n)))))
 
-(defun part-1 (input-file)
+(defun day-02-part-1 (input-file)
   (with-open-file (stream input-file)
     (loop for line = (read-line stream nil)
           while line
           sum (parse-game line))))
 
-(defun part-2 (input-file)
+(defun day-02-part-2 (input-file)
   (with-open-file (stream input-file)
     (loop for line = (read-line stream nil)
           while line
-          sum (part-2-aux line))))
+          sum (day-02-part-2-aux line))))
+
+(defun day-02 ()
+  (let ((f #p"02-input.txt"))
+    (values (day-02-part-1 f)
+            (day-02-part-2 f))))
