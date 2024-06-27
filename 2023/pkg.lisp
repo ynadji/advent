@@ -4,7 +4,8 @@
   (:export :day-01
            :day-02
            :day-03
-           :day-04))
+           :day-04
+           :day-05))
 
 ;; didn't seem to do much for these early ones.
 ;;(declaim (optimize (speed 3) (safety 0)))
