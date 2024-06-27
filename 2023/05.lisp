@@ -9,18 +9,25 @@
   (len 0 :type fixnum))
 (defstruct mapper ranges)
 
-(defun in-range (x r)
+(defun in-range (x r &key (forward? t))
   (declare (fixnum x)
-           (range r))
-  (and (>= x (range-src r))
-       (<  x (+ (range-src r) (range-len r)))))
+           (range r)
+           (boolean forward?))
+  (if forward?
+      (and (>= x (range-src r))
+           (<  x (+ (range-src r) (range-len r))))
+      (and (>= x (range-dst r))
+           (<  x (+ (range-dst r) (range-len r))))))
 
-(defun map-> (map x)
+(defun map-> (map x &key (forward? t))
   (declare (fixnum x)
-           (mapper map))
+           (mapper map)
+           (boolean forward?))
   (let ((dst (loop for r of-type range in (mapper-ranges map) do
-    (when (in-range x r)
-      (return (+ (range-dst r) (- x (range-src r))))))))
+    (when (in-range x r :forward? forward?)
+      (if forward?
+          (return (+ (range-dst r) (- x (range-src r))))
+          (return (+ (range-src r) (- x (range-dst r)))))))))
     (if dst dst x)))
 
 (defun parse-seeds (line)
@@ -51,12 +58,13 @@
           finally (push map maps))
     (values seeds (reverse maps))))
 
-(defun chase-map (seed maps)
-  (declare (fixnum seed))
+(defun chase-map (seed maps &key (forward? t))
+  (declare (fixnum seed)
+           (boolean forward?))
   (let ((n seed))
     (declare (fixnum n))
     (loop for m in maps do
-      (setq n (map-> m n))
+      (setq n (map-> m n :forward? forward?))
           finally (return n))))
 
 (defun find-min-location (lines)
@@ -85,14 +93,36 @@
 
 ;; lol took ~32 minutes without type annotations, but down to ~2.5 minutes with
 ;; 1.86B seeds. i learned enough and i'm fine with that for now.
-(defun day-05-part-2 (input-file)
+(defun day-05-part-2-bruteforce (input-file)
   (->> input-file
     (uiop:read-file-lines)
     (find-min-location-seed-range)))
 
+(defun in-seed? (seeds x)
+  (loop for seed-range in (group seeds 2) do
+    (let ((start (first seed-range))
+          (len (first (rest seed-range))))
+      (when (and (>= x start)
+                 (<  x (+ start len)))
+        (return x)))))
+
+;; Just start from 0 and work our way up for possible locations. Traverse the
+;; chain of maps backwards and if the ultimate value is one of the seeds, we're
+;; good!
+(defun find-min-location-seed-range-backwards (lines)
+  (multiple-value-bind (seeds maps) (parse-almanac lines)
+    (let ((maps (reverse maps)))
+      (loop for location of-type fixnum from 0 do
+        (let ((seed (chase-map location maps :forward? nil)))
+          (when (in-seed? seeds seed)
+            (return location)))))))
+
+(defun day-05-part-2 (input-file)
+  (->> input-file
+    (uiop:read-file-lines)
+    (find-min-location-seed-range-backwards)))
+
 ;; ideas for speedups:
-;; - only try seeds that map into the first set (could be incorrect)
-;; - go in reverse?
 ;; - range split: https://www.reddit.com/r/adventofcode/comments/18b560a/2023_day_5_part_2_cpu_goes_brrr/kc4dbhq/
 (defun day-05 ()
   (let ((f #p"05-input.txt"))
