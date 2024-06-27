@@ -9,7 +9,8 @@
                (:file "02")
                (:file "03")
                (:file "04")
-               (:file "05"))
+               (:file "05")
+               (:file "06"))
   :in-order-to ((test-op (test-op :aoc2023/test))))
 
 (asdf:defsystem :aoc2023/test
