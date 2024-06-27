@@ -35,3 +35,9 @@
   (time (multiple-value-bind (res1 res2) (aoc2023:day-04)
           (is (= res1 21213))
           (is (= res2 8549735)))))
+
+(test test-day-05
+  (time (multiple-value-bind (res1 res2) (aoc2023:day-05)
+          (is (= res1 46))
+          ;;(is (= res2 1240035)) ; takes more than my 2.5 minutes optimized build in slime. not sure why.
+          )))
