@@ -52,17 +52,20 @@
                  (return (< x y))))))
 
 (defun jokerfy-hand (hand)
-  (cond ((not (member 11 (hand-card-values hand)))
-         hand)
-        ((every (lambda (c) (= c 11)) (hand-card-values hand))
-         (make-hand :type :five-of-a-kind :type-rank 7 :card-values (make-list 5 :initial-element 1)))
-        (t (let* ((card-values (hand-card-values hand))
-                  (card-values-no-jokers (remove 11 card-values))
-                  (bag (reduce #'fset:bag-sum (mapcar #'bag card-values-no-jokers)))
-                  (mode-card-value (caar (most-common bag)))
-                  (new-hand (make-hand-from-card-values (substitute mode-card-value 11 card-values))))
-             (setf (hand-card-values new-hand) (substitute 1 11 card-values))
-             new-hand))))
+  (flet ((joker? (c) (= c 11)))
+    (if (every #'joker? (hand-card-values hand))
+        (make-hand :type :five-of-a-kind :type-rank 7 :card-values (make-list 5 :initial-element 1))
+        (let* ((card-values (hand-card-values hand))
+               (card-values-no-jokers (remove 11 card-values))
+               (bag (->> card-values-no-jokers
+                      (mapcar #'bag)
+                      (reduce #'fset:bag-sum)))
+               (mode-card-value (caar (most-common bag)))
+               (new-hand (->> card-values
+                           (substitute mode-card-value 11)
+                           (make-hand-from-card-values))))
+          (setf (hand-card-values new-hand) (substitute 1 11 card-values))
+          new-hand))))
 
 (defun read-hands-and-bids (input-file &key (jokerfy? nil))
   (let ((tmp (->> input-file
@@ -70,9 +73,16 @@
                (mapcar (lambda (s) (str:split " " s :omit-nulls t))))))
     (mapcar #'cons
             (if jokerfy?
-                (mapcar #'jokerfy-hand (mapcar #'make-hand-from-string (mapcar #'first tmp)))
-                (mapcar #'make-hand-from-string (mapcar #'first tmp)))
-            (mapcar #'parse-integer (mapcar #'second tmp)))))
+                (->> tmp
+                  (mapcar #'first)
+                  (mapcar #'make-hand-from-string)
+                  (mapcar #'jokerfy-hand))
+                (->> tmp
+                  (mapcar #'first)
+                  (mapcar #'make-hand-from-string)))
+            (->> tmp
+              (mapcar #'second )
+              (mapcar #'parse-integer)))))
 
 (defun total-winnings (hands-and-bids)
   (let ((sorted-hands-and-bids (sort hands-and-bids #'compare-hands :key #'first)))
