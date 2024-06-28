@@ -55,3 +55,8 @@
   (time (multiple-value-bind (res1 res2) (aoc2023:day-08)
           (is (= res1 16697))
           (is (= res2 10668805667831)))))
+
+(test test-day-09
+  (time (multiple-value-bind (res1 res2) (aoc2023:day-09)
+          (is (= res1 1637452029))
+          (is (= res2 908)))))
