@@ -21,28 +21,27 @@
     (aux measurements nil)))
 
 (defun predict-next-value (measurements)
-  (apply #'+ (extrapolate measurements)))
+  (apply #'+ (extrapolate measurements :selector #'last-value)))
 
-(defun sum-of-predicated-values (list-of-measurements)
-  (apply #'+ (mapcar #'predict-next-value list-of-measurements)))
+(defun sum-of-predicted-values (list-of-measurements &key predictor)
+  (apply #'+ (mapcar predictor list-of-measurements)))
 
 (defun day-09-part-1 (input-file)
   (-> input-file
     (read-oasis-report)
-    (sum-of-predicated-values)))
+    (sum-of-predicted-values :predictor #'predict-next-value)))
 
 (defun predict-previous-value (measurements)
-  (let ((val (first measurements)))
-           (loop for x in (rest measurements)
-                 do (setf val (- x val)))
-           val))
+  (let* ((extrapolations (extrapolate measurements :selector #'first))
+         (val (first extrapolations)))
+    (loop for x in (rest extrapolations)
+          do (setf val (- x val)))
+    val))
 
 (defun day-09-part-2 (input-file)
-  (let* ((report (read-oasis-report input-file))
-         (extrapolations (mapcar (lambda (measurements) (extrapolate measurements :selector #'first))
-                                 report))
-         (tmp (mapcar #'predict-previous-value extrapolations)))
-    (apply #'+ tmp)))
+  (-> input-file
+    (read-oasis-report)
+    (sum-of-predicted-values :predictor #'predict-previous-value)))
 
 (defun day-09 ()
   (let ((f #p"09-input.txt"))
