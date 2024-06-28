@@ -38,8 +38,35 @@ I started this in `awk/bash` but quickly bailed. Working through the exercises
 again but this time in Common Lisp. All solutions written/tested with SBCL:
 
 ```
-¡ sbcl --version
+$ sbcl --version
 SBCL 2.4.1
+```
+
+You can run all the test cases with the following command while in the `2023`
+subdirectory:
+
+```
+$ sbcl --noinform --eval '(progn (asdf:test-system :aoc2023) (quit))'
+;;; Computing Hangul syllable names
+Running test suite AOC2023
+ Running test TEST-DAY-01 ..
+Evaluation took:
+  0.005 seconds of real time
+  0.005207 seconds of total run time (0.005044 user, 0.000163 system)
+  100.00% CPU
+  2,882,096 bytes consed
+...
+ Running test TEST-DAY-06 ..
+Evaluation took:
+  0.062 seconds of real time
+  0.062750 seconds of total run time (0.061939 user, 0.000811 system)
+  101.61% CPU
+  0 bytes consed
+  
+ Did 12 checks.
+    Pass: 12 (100%)
+    Skip: 0 ( 0%)
+    Fail: 0 ( 0%)
 ```
 
 ### Helpful Links
