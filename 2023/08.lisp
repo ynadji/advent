@@ -1,19 +1,5 @@
 (in-package :aoc2023)
 
-(defun circular! (items)
-  "Modifies the last cdr of list ITEMS, returning a circular list"
-  (setf (cdr (last items)) items))
-
-;; Didn't end up using it but it was fun so let's keep it.
-(defun make-one-hot-encoder ()
-  (let ((index -1)
-        (symbol->index (make-hash-table :test #'equal)))
-    #'(lambda (x)
-        (if (gethash x symbol->index)
-            (nth-value 0 (gethash x symbol->index))
-            (progn
-              (setf (gethash x symbol->index) (incf index)))))))
-
 (defun read-map (input-file)
   (let* ((lines (uiop:read-file-lines input-file))
          (route (car lines))

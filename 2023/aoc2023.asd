@@ -5,6 +5,7 @@
   :license "MIT"
   :depends-on ("str" "uiop" "arrow-macros" "fset" "alexandria")
   :components ((:file "pkg")
+               (:file "utils")
                (:file "01")
                (:file "02")
                (:file "03")
