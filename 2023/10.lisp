@@ -1,6 +1,8 @@
 (in-package :aoc2023)
 
 (defun connections (c)
+  "Returns valid exit cardinal directions for a pipe. S is basically a wildcard so
+all directions are valid."
   (let ((valid nil))
     (when (member c (coerce "S|LJ" 'list))
       (push :north valid))
@@ -12,6 +14,9 @@
       (push :west valid))
     valid))
 
+;; a-list to map the cardinal direction to the addend needed to move POS in that
+;; direction. i.e., (ADD-PAIR POS '(-1 . 0)) -> NEW-POS such that NEW-POS is one
+;; tile :north of POS.
 (defparameter *direction-to-offset*
   '((:north . (-1 . 0))
     (:south . (1 . 0))
@@ -28,6 +33,8 @@
   (cdr (assoc dir *reverse-directions*)))
 
 (defun read-maze (input-file)
+  "Reads an input file representing a maze and returns two values: the maze as a
+2-d array, and the location of the #\S as a pair."
   (let* ((lines (uiop:read-file-lines input-file))
          (rows (length lines))
          (cols (length (first lines)))
@@ -73,6 +80,11 @@
     (member dir (mapcar #'reverse-direction (connections x)))))
 
 (defun reachable-neighbors (maze pos)
+  "A neighbor is reachable iff its exits match with the pipe it is connecting
+to. E.g., a #\7 connects due :west and :south. It can only connect with pipe
+pieces that connect :east or :north, respectively. The one exception is #\S,
+which can connect to any other pipe piece. #\. have no exits, so cannot connect
+to any pipe piece."
   (let* ((directions (exits maze pos))
          (positions (mapcar (lambda (dir) (get-new-pos pos dir)) directions)))
     (loop for direction in directions
@@ -82,9 +94,14 @@
             collect position)))
 
 (defun next-pos (maze pos prev-pos)
+  "A given position can only connect to at most two other pipes. Since we only care
+about going somewhere new, this helper returns the other direction."
   (car (remove prev-pos (reachable-neighbors maze pos) :test #'equal)))
 
 (defun find-cycle (maze start)
+  "DFS in one direction starting from START on MAZE. Since there is only a single
+loop through START, we only need to go one direction from START until we run
+into START again."
   (let ((current (first (reachable-neighbors maze start)))
         (prev start))
     (loop for next = (next-pos maze current prev)
@@ -101,23 +118,32 @@
     (floor (/ (length (find-cycle maze start)) 2))))
 
 (defun print-maze (maze cycle &key (color? nil))
+  "Print out MAZE. #\S will be colored red, tiles in the CYCLE will be colored
+green and #\I tiles that are inside the CYCLE will be colored cyan. Doesn't work
+in SLIME."
   (loop for i below (array-dimension maze 0) do
     (format t "~3,'0d " i)
     (loop for j below (array-dimension maze 1)
           for c = (aref maze i j) do
-      (if color?
-          (cond ((eq #\S c)
-                 (format t "~c[31m~a~c[0m" #\ESC c #\ESC)) ; red for start
-                ((eq #\I c)
-                 (format t "~c[36m~a~c[0m" #\ESC c #\ESC)) ; cyan for inside
-                ((member (cons i j) cycle :test #'equal)
-                 (format t "~c[32m~a~c[0m" #\ESC c #\ESC)) ; green for pipe
-                (t
-                 (format t "~a" (aref maze i j)))) ; black for rest
-          (format t "~a" (aref maze i j))))
+            (if color?
+                (cond ((eq #\S c)
+                       (format t "~c[31m~a~c[0m" #\ESC c #\ESC)) ; red for start
+                      ((eq #\I c)
+                       (format t "~c[36m~a~c[0m" #\ESC c #\ESC)) ; cyan for inside
+                      ((member (cons i j) cycle :test #'equal)
+                       (format t "~c[32m~a~c[0m" #\ESC c #\ESC)) ; green for pipe
+                      (t
+                       (format t "~a" (aref maze i j)))) ; black for rest
+                (format t "~a" (aref maze i j))))
     (format t "~&")))
 
 (defun relative-direction-at-char (c traveling)
+  "Return two lists that correpond to the cardinal directions to the left and
+to the right, respectively, as if just arrived to tile C after going in the
+cardinal direction TRAVELING. Corner Cs (e.g., #\L) have multiple tiles to their
+left and right.
+
+This could probably be greatly simplified."
   (if (member c (coerce "|-" 'list))
       (cond ((eq traveling :north) (values '(:west)  '(:east)))
             ((eq traveling :south) (values '(:east)  '(:west)))
@@ -141,17 +167,25 @@
                  (values nil '(:south :east)))))))
 
 (defun infer-traveling (p1 p2)
+  "Return the cardinal direction we go to travel from p1 -> p2."
   (loop for (direction . offset) in *direction-to-offset* do
     (when (equal (add-pair p1 offset)
                  p2)
       (return direction))))
 
 (defun now-traveling (c traveling)
+  "Given the current tile's C and the direction we are currently TRAVELING (e.g.,
+:west) to enter the tile, return the direction of the tile's other exit."
   (let* ((enter-bys (mapcar #'reverse-direction (connections c)))
          (other-entrance (first (remove traveling enter-bys))))
     (reverse-direction other-entrance)))
 
 (defun label-inside-outside (maze cycle)
+  "Given a MAZE and its CYCLE, begin labeling the tiles inside CYCLE. Given a
+side (:right or :left) of the pipe to consider inside while walking CYCLE, label
+non-CYCLE nodes on the inside side as being inside. We maintain all of these
+positions in INSIDES, which is returned. We also update MAZE at these tiles to
+be #\I. This only infers the inside tiles that are nearest to the pipe in CYCLE."
   ;; how do i infer which direction is inside? i cheated a bit here by
   ;; hardcoding it but there are only two possibilities. if you want to fix
   ;; this, the correct answer for the following test inputs are:
@@ -181,12 +215,17 @@
     insides))
 
 (defun all-neighbors (maze pos)
+  "Really should be all-valid-pos-neighbors."
   (let ((positions (mapcar (lambda (dir) (get-new-pos pos dir)) '(:north :south :east :west))))
     (loop for position in positions
           when (valid-pos? maze position)
             collect position)))
 
 (defun flood-fill (maze known-insides cycle)
+  "Fill the remaining insides of MAZE bound by CYCLE starting with a subset of all
+inside tiles in KNOWN-INSIDES that were found by LABEL-INSIDE-OUTSIDE. Return
+the updated KNOWN-INSIDES so we can solve the puzzle. Update the tiles in MAZE
+so we can pretty-print our MAZR :3. BFS starting on tiles from KNOWN-INSIDES."
   (let ((candidates (remove-duplicates (mapcan (lambda (pos) (all-neighbors maze pos)) known-insides))))
     (loop while candidates do
       (let ((pos (pop candidates)))
