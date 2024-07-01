@@ -117,16 +117,6 @@
           (format t "~a" (aref maze i j))))
     (format t "~&")))
 
-(defparameter *compass* '(:north :east :south :west :north))
-(defparameter *compass-reverse* (reverse *compass*))
-(defun turn (old-cardinal-direction new-cardinal-direction)
-  (let ((direction-change (list old-cardinal-direction new-cardinal-direction)))
-   (cond ((search direction-change *compass* :test #'equal)
-          :right)
-         ((search direction-change *compass-reverse* :test #'equal)
-          :left)
-         (t nil))))
-
 (defun relative-direction-at-char (c traveling)
   (if (member c (coerce "|-" 'list))
       (cond ((eq traveling :north) (values '(:west)  '(:east)))
@@ -160,10 +150,6 @@
   (let* ((enter-bys (mapcar #'reverse-direction (connections c)))
          (other-entrance (first (remove traveling enter-bys))))
     (reverse-direction other-entrance)))
-
-(defun relative-pos (pos traveling direction)
-  (multiple-value-bind (left right) (relative-direction-at-index traveling)
-    (get-new-pos pos (if (eq direction :right) right left))))
 
 (defun label-inside-outside (maze cycle)
   ;; how do i infer which direction is inside? i cheated a bit here by
