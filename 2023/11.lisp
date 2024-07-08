@@ -18,6 +18,8 @@
           collect i))
 
 (defun expand-galaxy (lines)
+  "Expand the galaxy represented by LINES. Rather than mucking about with expanding
+columns, just transpose the lines like a matrix to treat the columns like rows."
   (-> lines
     (expand-galaxy-rows)
     (transpose)
@@ -25,6 +27,8 @@
     (transpose)))
 
 (defun expansion-intercepts (lines)
+  "Find the row and column indices, which correspond to the x and y intercepts,
+respectively, that would need to be enlarged because they have no galaxies."
   (let ((xints (find-galaxy-expander-intercepts lines))
         (yints (find-galaxy-expander-intercepts (transpose lines))))
     (values xints yints)))
@@ -56,6 +60,7 @@
             (make-array (length galaxy-positions) :initial-contents galaxy-positions))))
 
 (defun sum-min-distances (galaxy-positions &key (xints nil) (yints nil) (expansion-factor 0))
+  "Loop over pairwise combinations to compute distances."
   (loop for i below (length galaxy-positions)
         sum (loop for j from (1+ i) below (length galaxy-positions)
                   sum (manhattan-distance (aref galaxy-positions i)
@@ -63,6 +68,7 @@
                                           :xints xints :yints yints
                                           :expansion-factor expansion-factor))))
 
+;; TODO: we don't actually ever need the map, so just return the positions.
 (defun day-11-part-1 (input-file)
   (multiple-value-bind (galaxy-map galaxy-positions) (read-galaxy input-file)
     (declare (ignore galaxy-map))
@@ -72,6 +78,8 @@
   (multiple-value-bind (galaxy-map galaxy-positions) (read-galaxy input-file :skip-expand? t)
     (declare (ignore galaxy-map))
     (multiple-value-bind (xints yints) (expansion-intercepts (uiop:read-file-lines input-file))
+      ;; TODO: is the off-by-one because we already include the non-expanded
+      ;; empty cols/rows?
       (sum-min-distances galaxy-positions :xints xints :yints yints :expansion-factor 999999))))
 
 (defun day-11 ()
