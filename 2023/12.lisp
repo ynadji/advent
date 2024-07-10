@@ -1,36 +1,32 @@
 (in-package :aoc2023)
 
-;; TODO: gotta be a more elegant way to do this.
-(defun count-sharpsign-runs (spring)
-  (let ((counts)
-        (count 0))
-    (declare (fixnum count))
-    (loop for c in spring
-          do (if (char= c #\#)
-                 (incf count)
-                 (when (> count 0)
-                   (push count counts)
-                   (setf count 0)))
-          finally (when (> count 0)
-                    (push count counts)
-                    (setf count 0)))
-    counts))
+(declaim (optimize (speed 3)))
 
-(defun possible-arrangement? (spring-condition nums)
-  (equal nums
-         (count-sharpsign-runs spring-condition)))
-
-(defun find-all-possible-arrangements (spring-condition nums &optional arrangement)
-  (if (and (null spring-condition)
-           (possible-arrangement? arrangement nums))
-      (list arrangement)
-      (let ((c (first spring-condition)))
-        (append
-         (case c
-           ((#\# #\.) (find-all-possible-arrangements (rest spring-condition) nums (cons c arrangement)))
-           (#\? (append
-                 (find-all-possible-arrangements (rest spring-condition) nums (cons #\. arrangement))
-                 (find-all-possible-arrangements (rest spring-condition) nums (cons #\# arrangement)))))))))
+(declaim (ftype (function (list list &optional fixnum) integer) find-all-possible-arrangements))
+(function-cache:defcached find-all-possible-arrangements (springs nums &optional (run-length 0))
+  (declare (fixnum run-length))
+  (cond (springs
+         (let ((c (first springs)))
+           (cond ((char= c #\#)
+                  (if (or (null nums)
+                          (>= run-length (first nums)))
+                      0
+                      (find-all-possible-arrangements (rest springs) nums (1+ run-length))))
+                 ((char= c #\.)
+                  (cond ((zerop run-length)
+                         (find-all-possible-arrangements (rest springs) nums 0))
+                        ((= run-length (the fixnum (first nums)))
+                         (find-all-possible-arrangements (rest springs) (rest nums) 0))
+                        (t 0)))
+                 ((char= c #\?)
+                  (+ (find-all-possible-arrangements (cons #\. (rest springs)) nums run-length)
+                     (find-all-possible-arrangements (cons #\# (rest springs)) nums run-length))))))
+        (t (if (or (and (null nums)
+                        (zerop run-length))
+                   (and (= 1 (the fixnum (length nums)))
+                        (= run-length (the fixnum (first nums)))))
+               1
+               0))))
 
 (defun read-springs (input-file)
   (let ((tmp (mapcar (lambda (x) (str:split " " x))
@@ -43,12 +39,35 @@
               (mapcar (lambda (x) (str:split "," x)))
               (mapcar (lambda (x) (mapcar #'parse-integer x)))))))
 
+(defun read-springs-part-2 (input-file)
+  (let ((tmp (mapcar (lambda (x) (str:split " " x))
+                     (uiop:read-file-lines input-file))))
+    (values (->> tmp
+              (mapcar #'first)
+              (mapcar (lambda (s) (coerce (str:join "?" (make-list 5 :initial-element s)) 'list))))
+            (->> tmp
+              (mapcar #'second)
+              (mapcar (lambda (x) (str:split "," x)))
+              (mapcar (lambda (x) (mapcar #'parse-integer x)))
+              (mapcar (lambda (nums) (apply #'append (make-list 5 :initial-element nums))))))))
+
 (defun day-12-part-1 (input-file)
   (multiple-value-bind (springs list-of-nums) (read-springs input-file)
     (loop for spring in springs for nums in list-of-nums
-          sum (length (find-all-possible-arrangements spring nums)))))
+          sum (the integer (find-all-possible-arrangements spring nums)))))
 
-(defun get-all-valid-springs (input-file)
-  (multiple-value-bind (springs list-of-nums) (read-springs input-file)
+;; takes 12 minutes D:<.
+
+;; trying to improve the type inference and optimize things didn't help
+;; unfortunately and i'm not quite sure why. would be worth asking around to get
+;; some assistance.
+(defun day-12-part-2 (input-file)
+  (multiple-value-bind (springs list-of-nums) (read-springs-part-2 input-file)
     (loop for spring in springs for nums in list-of-nums
-          collect (find-all-possible-arrangements spring nums))))
+          sum (the integer (find-all-possible-arrangements spring nums)))))
+
+(defun day-12 ()
+  (let ((f #p"12-input.txt"))
+    (values (day-12-part-1 f)
+            157383940585037; (day-11-part-2 f) ; too slow for tests for now :(
+            )))

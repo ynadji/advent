@@ -3,7 +3,7 @@
   :description "Advent of Code 2023 solutions in Common Lisp"
   :author "Yacin Nadji <ynadji@gmail.com>"
   :license "MIT"
-  :depends-on ("str" "uiop" "arrow-macros" "fset" "alexandria")
+  :depends-on ("str" "uiop" "arrow-macros" "fset" "alexandria" "function-cache")
   :components ((:file "pkg")
                (:file "utils")
                (:file "01")
@@ -16,7 +16,8 @@
                (:file "08")
                (:file "09")
                (:file "10")
-               (:file "11"))
+               (:file "11")
+               (:file "12"))
   :in-order-to ((test-op (test-op :aoc2023/test))))
 
 (asdf:defsystem :aoc2023/test
