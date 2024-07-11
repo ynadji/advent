@@ -12,7 +12,9 @@
   "Modifies the last cdr of list ITEMS, returning a circular list"
   (setf (cdr (last items)) items))
 
-(defun make-one-hot-encoder ()
+(defun make-label-encoder ()
+  "Returns a function that given any object X differentiable by EQUAL, will return
+a unique identifier that maps X to a unique, increasing integer."
   (let ((index -1)
         (symbol->index (make-hash-table :test #'equal)))
     #'(lambda (x)
