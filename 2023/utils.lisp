@@ -1,8 +1,12 @@
+(in-package :aoc2023)
+
+;; TODO:
+;; neighbors function
+;; maybe a general DFS BFS?
+;; string of 1,2,3 to (1 2 3) for sure
 ;; see if other functions should be moved here?
 ;; macro (?) for defining test cases
-;; macro (?) for defining final function (define-day-with-input ...) or something?
-
-(in-package :aoc2023)
+;; macro (?) for defining final function (define-day-with-input ...) or something? should fetch input in demand.
 
 (defun circular! (items)
   "Modifies the last cdr of list ITEMS, returning a circular list"
@@ -172,3 +176,20 @@
                     :collect `(,symbol (or ,value
                                            (return-from ,block nil))))
          ,@body))))
+
+;; AOC utils
+(defun make-cookie-jar (session-cookie)
+  (make-instance 'drakma:cookie-jar
+                 :cookies (list (make-instance 'drakma:cookie :name "session" :domain "adventofcode.com" :value session-cookie))))
+
+(let ((session-cookie (-> #P"~/.aoc-session-cookie" uiop:read-file-string str:trim)))
+  (defun fetch-day-input-file (year day)
+    (let ((cached-file (format nil "~a-input.txt" day))
+          (url (format nil "https://adventofcode.com/~a/day/~a/input" year day)))
+      (if-let ((path (probe-file cached-file)))
+        path
+        (progn
+          (with-open-file (out cached-file :if-does-not-exist :create :direction :output)
+            (princ (drakma:http-request url :cookie-jar (make-cookie-jar session-cookie))
+                   out))
+          (probe-file cached-file))))))
