@@ -12,7 +12,8 @@
            :day-09
            :day-10
            :day-11
-           :day-12))
+           :day-12
+           :day-13))
 
 ;; didn't seem to do much for these early ones.
 ;;(declaim (optimize (speed 3) (safety 0)))
