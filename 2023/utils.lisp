@@ -5,8 +5,24 @@
 ;; maybe a general DFS BFS?
 ;; string of 1,2,3 to (1 2 3) for sure
 ;; see if other functions should be moved here?
-;; macro (?) for defining test cases
-;; macro (?) for defining final function (define-day-with-input ...) or something? should fetch input in demand.
+;; export all of these!
+
+;; on lisp
+(defun mkstr (&rest args)
+  (with-output-to-string (s)
+    (dolist (a args) (princ a s))))
+
+(defun symb (&rest args)
+  (values (intern (apply #'mkstr args))))
+
+(defun group (list n)
+  (declare (fixnum n))
+  (labels ((aux (list n acc)
+             (if (null list)
+                 (reverse acc)
+                 (aux (nthcdr n list) n (cons (subseq list 0 (min n (length list))) acc)))))
+    (when (> n 0)
+      (aux list n nil))))
 
 (defun circular! (items)
   "Modifies the last cdr of list ITEMS, returning a circular list"
@@ -69,7 +85,7 @@ a unique identifier that maps X to a unique, increasing integer."
            ,else)))))
 
 ;; TODO update docs here
-(defmacro if-let (bindings &body body)
+(defmacro if-let* (bindings &body body)
   "Bind `bindings` in parallel and execute `then` if all are true, or `else` otherwise.
 
   `body` must be of the form `(...optional-declarations... then else)`.
@@ -182,7 +198,9 @@ a unique identifier that maps X to a unique, increasing integer."
 ;; AOC utils
 (defun make-cookie-jar (session-cookie)
   (make-instance 'drakma:cookie-jar
-                 :cookies (list (make-instance 'drakma:cookie :name "session" :domain "adventofcode.com" :value session-cookie))))
+                 :cookies (list (make-instance 'drakma:cookie :name "session"
+                                                              :domain "adventofcode.com"
+                                                              :value session-cookie))))
 
 (let ((session-cookie (-> #P"~/.aoc-session-cookie" uiop:read-file-string str:trim)))
   (defun fetch-day-input-file (year day)
@@ -195,3 +213,30 @@ a unique identifier that maps X to a unique, increasing integer."
             (princ (drakma:http-request url :cookie-jar (make-cookie-jar session-cookie))
                    out))
           (probe-file cached-file))))))
+
+(defvar *day-template* "(in-package :aoc~a)
+
+(defun day-~2,'0d-part-1 (input-file) (progn input-file -1))
+
+(defun day-~2,'0d-part-2 (input-file) (progn input-file -1))
+
+(defun day-~2,'0d ()
+  (let ((f (fetch-day-input-file ~a ~a)))
+    (values (day-~2,'0d-part-1 f)
+            (day-~2,'0d-part-2 f))))
+")
+
+(defun define-aoc-day (year day)
+  (format nil *day-template* year day day day year day day day))
+
+(defun make-aoc-project (year)
+  (loop for day from 1 upto 25 do
+    (let ((fname (format nil "~2,'0d.lisp" day)))
+      (when (-> fname probe-file not)
+        (with-open-file (out fname :direction :output :if-does-not-exist :create)
+          (princ (define-aoc-day year day) out)))))
+  ;; to add:
+  ;; * aocYEAR.asd template
+  ;; * pkg.list template
+  ;; * aocYEAR-tests.lisp template
+  )

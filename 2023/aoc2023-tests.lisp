@@ -1,14 +1,11 @@
 (in-package :cl-user)
 (defpackage test-aoc2023
-  (:use #:cl)
+  (:use #:cl #:aoc2023)
   (:import-from #:fiveam
                 #:def-suite
                 #:in-suite
                 #:test
-                #:is
-                #:signals
-                #:def-fixture
-                #:with-fixture)
+                #:is)
   (:export #:aoc2023))
 
 (in-package :test-aoc2023)
@@ -16,67 +13,40 @@
 (def-suite aoc2023)
 (in-suite aoc2023)
 
-(test test-day-01
-  (time (multiple-value-bind (res1 res2) (aoc2023:day-01)
-          (is (= res1 55447))
-          (is (= res2 54706)))))
+;; NB: Captures TEST and IS from :FIVEAM. Evaluates DAY multiple times, but we
+;; only use at below so it isn't super important. I would rather have this in
+;; utils.lisp but it would search for IS/TEST in AOC2023 instead of
+;; TEST-AOC2023. Wasn't sure how to fix that.
+(defmacro make-aoc-tests (test-cases)
+  `(progn
+     ,@(loop for (day expect1 expect2) in test-cases
+             collect `(test ,(aoc2023:symb 'test- day)
+                        (time (multiple-value-bind (res1 res2) (,(aoc2023:symb 'day- (format nil "~2,'0d" day)))
+                                (is (= res1 ,expect1))
+                                (is (= res2 ,expect2))))))))
 
-(test test-day-02
-  (time (multiple-value-bind (res1 res2) (aoc2023:day-02)
-          (is (= res1 2795))
-          (is (= res2 75561)))))
-
-(test test-day-03
-  (time (multiple-value-bind (res1 res2) (aoc2023:day-03)
-          (is (= res1 551094))
-          (is (= res2 80179647)))))
-
-(test test-day-04
-  (time (multiple-value-bind (res1 res2) (aoc2023:day-04)
-          (is (= res1 21213))
-          (is (= res2 8549735)))))
-
-(test test-day-05
-  (time (multiple-value-bind (res1 res2) (aoc2023:day-05)
-          (is (= res1 650599855))
-          (is (= res2 1240035)))))
-
-(test test-day-06
-  (time (multiple-value-bind (res1 res2) (aoc2023:day-06)
-          (is (= res1 1159152))
-          (is (= res2 41513103)))))
-
-(test test-day-07
-  (time (multiple-value-bind (res1 res2) (aoc2023:day-07)
-          (is (= res1 249726565))
-          (is (= res2 251135960)))))
-
-(test test-day-08
-  (time (multiple-value-bind (res1 res2) (aoc2023:day-08)
-          (is (= res1 16697))
-          (is (= res2 10668805667831)))))
-
-(test test-day-09
-  (time (multiple-value-bind (res1 res2) (aoc2023:day-09)
-          (is (= res1 1637452029))
-          (is (= res2 908)))))
-
-(test test-day-10
-  (time (multiple-value-bind (res1 res2) (aoc2023:day-10)
-          (is (= res1 6754))
-          (is (= res2 567)))))
-
-(test test-day-11
-  (time (multiple-value-bind (res1 res2) (aoc2023:day-11)
-          (is (= res1 10885634))
-          (is (= res2 707505470642)))))
-
-(test test-day-12
-  (time (multiple-value-bind (res1 res2) (aoc2023:day-12)
-          (is (= res1 7670))
-          (is (= res2 157383940585037)))))
-
-(test test-day-13
-  (time (multiple-value-bind (res1 res2) (aoc2023:day-13)
-          (is (= res1 35210))
-          (is (= res2 31974)))))
+(make-aoc-tests ((1 55447 54706)
+                 (2 2795 75561)
+                 (3 551094 80179647)
+                 (4 21213 8549735)
+                 (5 650599855 1240035)
+                 (6 1159152 41513103)
+                 (7 249726565 251135960)
+                 (8 16697 10668805667831)
+                 (9 1637452029 908)
+                 (10 6754 567)
+                 (11 10885634 707505470642)
+                 (12 7670 157383940585037)
+                 (13 35210 31974)
+                 (14 0 0)
+                 (15 0 0)
+                 (16 0 0)
+                 (17 0 0)
+                 (18 0 0)
+                 (19 0 0)
+                 (20 0 0)
+                 (21 0 0)
+                 (22 0 0)
+                 (23 0 0)
+                 (24 0 0)
+                 (25 514786 0)))

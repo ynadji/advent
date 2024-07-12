@@ -15,14 +15,16 @@
            :day-11
            :day-12
            :day-13
-           :day-25))
-
-;; didn't seem to do much for these early ones.
-;;(declaim (optimize (speed 3) (safety 0)))
-
-
-;;;; TODOs
-;;;; - refactoring
-;;;; - figure out dictionary library
-;;;; - can i make a default dict somehow?
-;;;; 
+           :day-14
+           :day-15
+           :day-16
+           :day-17
+           :day-18
+           :day-19
+           :day-20
+           :day-21
+           :day-22
+           :day-23
+           :day-24
+           :day-25
+           :symb))

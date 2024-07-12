@@ -76,15 +76,6 @@
     (uiop:read-file-lines)
     (find-min-location)))
 
-(defun group (list n)
-  (declare (fixnum n))
-  (labels ((aux (list n acc)
-             (if (null list)
-                 (reverse acc)
-                 (aux (nthcdr n list) n (cons (subseq list 0 (min n (length list))) acc)))))
-    (when (> n 0)
-      (aux list n nil))))
-
 (defun find-min-location-seed-range (lines)
   (multiple-value-bind (seeds maps) (parse-almanac lines)
     (loop for seed-range in (group seeds 2) minimize
