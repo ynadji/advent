@@ -48,6 +48,6 @@
           sum (find-calibration-value-2 line))))
 
 (defun day-01 ()
-  (let ((f #p"01-input.txt"))
+  (let ((f #p"1-input.txt"))
     (values (day-01-part-1 f)
             (day-01-part-2 f))))

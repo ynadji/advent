@@ -44,6 +44,6 @@
     (sum-of-predicted-values :predictor #'predict-previous-value)))
 
 (defun day-09 ()
-  (let ((f #p"09-input.txt"))
+  (let ((f #p"9-input.txt"))
     (values (day-09-part-1 f)
             (day-09-part-2 f))))

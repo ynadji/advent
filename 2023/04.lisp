@@ -43,6 +43,6 @@
     (apply #'+)))
 
 (defun day-04 ()
-  (let ((f #p"04-input.txt"))
+  (let ((f #p"4-input.txt"))
     (values (day-04-part-1 f)
             (day-04-part-2 f))))

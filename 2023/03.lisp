@@ -105,5 +105,5 @@
               (apply #'+)))))
 
 (defun day-03 ()
-  (let ((f #p"03-input.txt"))
+  (let ((f #p"3-input.txt"))
     (solve-day-03 f)))

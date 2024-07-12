@@ -98,6 +98,6 @@
     (total-winnings hands-and-bids)))
 
 (defun day-07 ()
-  (let ((f #p"07-input.txt"))
+  (let ((f #p"7-input.txt"))
     (values (day-07-part-1 f)
             (day-07-part-2 f))))
