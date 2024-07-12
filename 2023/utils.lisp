@@ -1,7 +1,7 @@
 (in-package :aoc2023)
 
 ;; TODO:
-;; neighbors function
+;; neighbors function. day 3 and day 10 needed. can you generalize for those?
 ;; maybe a general DFS BFS?
 ;; string of 1,2,3 to (1 2 3) for sure
 ;; see if other functions should be moved here?
@@ -238,5 +238,6 @@ a unique identifier that maps X to a unique, increasing integer."
   ;; to add:
   ;; * aocYEAR.asd template
   ;; * pkg.list template
-  ;; * aocYEAR-tests.lisp template
+  ;; * aocYEAR-tests.lisp template. by default have all but day 1 commented out
+  ;; so you don't hammer the site when you run tests.
   )

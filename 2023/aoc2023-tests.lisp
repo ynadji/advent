@@ -14,7 +14,7 @@
 (in-suite aoc2023)
 
 ;; NB: Captures TEST and IS from :FIVEAM. Evaluates DAY multiple times, but we
-;; only use at below so it isn't super important. I would rather have this in
+;; only use it below so it isn't super important. I would rather have this in
 ;; utils.lisp but it would search for IS/TEST in AOC2023 instead of
 ;; TEST-AOC2023. Wasn't sure how to fix that.
 (defmacro make-aoc-tests (test-cases)
@@ -38,15 +38,15 @@
                  (11 10885634 707505470642)
                  (12 7670 157383940585037)
                  (13 35210 31974)
-                 (14 0 0)
-                 (15 0 0)
-                 (16 0 0)
-                 (17 0 0)
-                 (18 0 0)
-                 (19 0 0)
-                 (20 0 0)
-                 (21 0 0)
-                 (22 0 0)
-                 (23 0 0)
-                 (24 0 0)
+                 ;(14 0 0)
+                 ;(15 0 0)
+                 ;(16 0 0)
+                 ;(17 0 0)
+                 ;(18 0 0)
+                 ;(19 0 0)
+                 ;(20 0 0)
+                 ;(21 0 0)
+                 ;(22 0 0)
+                 ;(23 0 0)
+                 ;(24 0 0)
                  (25 514786 0)))
