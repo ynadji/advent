@@ -6,6 +6,7 @@
 ;; string of 1,2,3 to (1 2 3) for sure
 ;; see if other functions should be moved here?
 ;; export all of these!
+;; add DIS function from On Lisp book!
 
 ;; on lisp
 (defun mkstr (&rest args)
@@ -241,3 +242,57 @@ a unique identifier that maps X to a unique, increasing integer."
   ;; * aocYEAR-tests.lisp template. by default have all but day 1 commented out
   ;; so you don't hammer the site when you run tests.
   )
+
+;; AOC puzzle utils
+(defun print-input (input)
+  "Prints input from puzzles after UIOP:READ-FILE-LINES."
+  (dolist (x input) (princ x) (princ #\Newline)))
+
+(defun transpose (lines)
+  "Transposes a list of strings. TODO: Dispatch this by type so lists of strings
+return lists of strings and list of lists return list of lists. TODO:
+Consolidate TRANSPOSE and TRANSPOSE-SEQS."
+  (->> lines
+    (mapcar (lambda (s) (coerce s 'list)))
+    (apply #'mapcar 'list)
+    (mapcar (lambda (cs) (coerce cs 'string)))))
+
+(defun transpose-seqs (lines)
+  (apply #'mapcar 'list lines))
+
+(defun rotate-90-clockwise (rows)
+  "Rotate a LIST of reversable things (like STRINGs or SEQUENCEs)
+AOC2023> (print-input (uiop:read-file-lines #P\"14-test-input.txt\"))
+O....#....
+O.OO#....#
+.....##...
+OO.#O....O
+.O.....O#.
+O.#..O.#.#
+..O..#O..O
+.......O..
+#....###..
+#OO..#....
+NIL
+AOC2023> (print-input (rotate-90-clockwise (uiop:read-file-lines #P\"14-test-input.txt\")))
+##..O.O.OO
+O....OO...
+O..O#...O.
+......#.O.
+......O.#.
+##.#O..#.#
+.#.O...#..
+.#O.#O....
+.....#....
+...O#.O.#.
+NIL
+"
+  (->> rows
+    transpose-seqs
+    (mapcar #'reverse)))
+
+(defun rotate-270-clockwise (rows)
+  (-> rows rotate-90-clockwise rotate-90-clockwise rotate-90-clockwise))
+
+(defun string-to-chars (string) (coerce string 'list))
+(defun chars-to-string (chars) (coerce chars 'string))

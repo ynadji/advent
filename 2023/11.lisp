@@ -1,11 +1,5 @@
 (in-package :aoc2023)
 
-(defun transpose (lines)
-  (->> lines
-    (mapcar (lambda (s) (coerce s 'list)))
-    (apply #'mapcar 'list)
-    (mapcar (lambda (cs) (coerce cs 'string)))))
-
 (defun expand-galaxy-rows (lines)
   (loop for line in lines
         append (if (every (lambda (c) (char= #\. c)) line)
