@@ -85,13 +85,8 @@ to. E.g., a #\7 connects due :west and :south. It can only connect with pipe
 pieces that connect :east or :north, respectively. The one exception is #\S,
 which can connect to any other pipe piece. #\. have no exits, so cannot connect
 to any pipe piece."
-  (let* ((directions (exits maze pos))
-         (positions (mapcar (lambda (dir) (get-new-pos pos dir)) directions)))
-    (loop for direction in directions
-          for position in positions
-          when (and (valid-pos? maze position)
-                    (accepts-from maze position direction))
-            collect position)))
+  (2d-neighbors maze (car pos) (cdr pos) :wanted-directions (exits maze pos)
+                                         :reachable? #'accepts-from))
 
 (defun next-pos (maze pos prev-pos)
   "A given position can only connect to at most two other pipes. Since we only care
@@ -215,11 +210,7 @@ be #\I. This only infers the inside tiles that are nearest to the pipe in CYCLE.
     insides))
 
 (defun all-neighbors (maze pos)
-  "Really should be all-valid-pos-neighbors."
-  (let ((positions (mapcar (lambda (dir) (get-new-pos pos dir)) '(:north :south :east :west))))
-    (loop for position in positions
-          when (valid-pos? maze position)
-            collect position)))
+  (2d-neighbors maze (car pos) (cdr pos) :wanted-directions '(:north :south :east :west)))
 
 (defun flood-fill (maze known-insides cycle)
   "Fill the remaining insides of MAZE bound by CYCLE starting with a subset of all

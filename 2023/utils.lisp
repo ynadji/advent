@@ -296,3 +296,32 @@ NIL
 
 (defun string-to-chars (string) (coerce string 'list))
 (defun chars-to-string (chars) (coerce chars 'string))
+
+;; how can i make it so i can easily do pos or i,j as argument?
+(defun 2d-neighbors (M i j &key (ignore-bounds nil)
+                             (reachable? (lambda (M pos dir) (list M pos dir)))
+                             (wanted-directions '(:south :east :south-east :north :west :north-west :south-west :north-east)))
+  (let ((maxrow (array-dimension M 0))
+        (maxcol (array-dimension M 1))
+        ;; can i do this in a nicer way?
+        (all-indices (list (cons (1+ i) j)
+                           (cons i (1+ j))
+                           (cons (1+ i) (1+ j))
+
+                           (cons (1- i) j)
+                           (cons i (1- j))
+                           (cons (1- i) (1- j))
+
+                           (cons (1+ i) (1- j))
+                           (cons (1- i) (1+ j))))
+        (all-directions (list :south :east :south-east :north :west :north-west :south-west :north-east)))
+    (let (valid-indices valid-directions)
+      (loop for (x . y) in all-indices for direction in all-directions
+            when (and (and (>= x 0) (< x maxrow))
+                      (and (>= y 0) (< y maxcol))
+                      (and (member direction wanted-directions))
+                      (and (funcall reachable? M (cons x y) direction)))
+              do (push (cons x y) valid-indices)
+                 (push direction valid-directions))
+      (values valid-indices
+              valid-directions))))

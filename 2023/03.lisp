@@ -18,26 +18,6 @@
                     (length (first tmp)))
                 :initial-contents tmp)))
 
-(defun neighbors (A i j)
-  (let ((maxrow (array-dimension A 0))
-        (maxcol (array-dimension A 1))
-        (all-indices (list (cons (1+ i) j)
-                           (cons i (1+ j))
-                           (cons (1+ i) (1+ j))
-
-                           (cons (1- i) j)
-                           (cons i (1- j))
-                           (cons (1- i) (1- j))
-
-                           (cons (1+ i) (1- j))
-                           (cons (1- i) (1+ j)))))
-    (let ((valid-indices
-            (loop for (x . y) in all-indices
-                  if (and (and (>= x 0) (< x maxrow))
-                          (and (>= y 0) (< y maxcol)))
-                    collect (cons x y))))
-      valid-indices)))
-
 (defun symbol? (c) (and (not (eq #\. c))
                         (not (digit-char-p c))))
 (defun dot? (c) (eq #\. c))
@@ -45,14 +25,14 @@
 (defun not-number? (c) (not (number? c)))
 
 (defun symbol-neighbors (A i j)
-  (->> (neighbors A i j)
+  (->> (2d-neighbors A i j)
     (mapcar #'(lambda (ij) (aref A (car ij) (cdr ij))))))
 
 (defun symbol-neighbors? (A i j)
   (some #'symbol? (symbol-neighbors A i j)))
 
 (defun gear-neighbors-pos (A i j)
-  (->> (neighbors A i j)
+  (->> (2d-neighbors A i j)
     (mapcar #'(lambda (ij) (cons ij (aref A (car ij) (cdr ij)))))
     (remove-if-not (lambda (x) (eq #\* (cdr x))))
     (mapcar #'first)))
