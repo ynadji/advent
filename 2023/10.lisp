@@ -210,7 +210,7 @@ be #\I. This only infers the inside tiles that are nearest to the pipe in CYCLE.
     insides))
 
 (defun all-neighbors (maze pos)
-  (2d-neighbors maze (car pos) (cdr pos) :wanted-directions '(:north :south :east :west)))
+  (2d-neighbors maze (car pos) (cdr pos)))
 
 (defun flood-fill (maze known-insides cycle)
   "Fill the remaining insides of MAZE bound by CYCLE starting with a subset of all

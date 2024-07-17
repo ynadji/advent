@@ -1,7 +1,6 @@
 (in-package :aoc2023)
 
 ;; TODO:
-;; neighbors function. day 3 and day 10 needed. can you generalize for those?
 ;; maybe a general DFS BFS?
 ;; string of 1,2,3 to (1 2 3) for sure
 ;; see if other functions should be moved here?
@@ -248,6 +247,10 @@ a unique identifier that maps X to a unique, increasing integer."
   "Prints input from puzzles after UIOP:READ-FILE-LINES."
   (dolist (x input) (princ x) (princ #\Newline)))
 
+;; TODO: Generalize the above to be more like PRINT-MAZE from 10.lisp so parts
+;; can be printed in color. Maybe a separate PRINT-ARRAY is needed where colors
+;; can be based on (1) MEMBER of POS or (2) MEMBER of (AREF i j).
+
 (defun transpose (lines)
   "Transposes a list of strings. TODO: Dispatch this by type so lists of strings
 return lists of strings and list of lists return list of lists. TODO:
@@ -297,13 +300,45 @@ NIL
 (defun string-to-chars (string) (coerce string 'list))
 (defun chars-to-string (chars) (coerce chars 'string))
 
+(defun zip-pairs (list1 list2) (mapcar #'cons list1 list2))
+(defun zip (&rest args) (apply #'mapcar #'list args))
+
+(defun unzip-pairs (list-of-cons)
+  (loop for (x . y) in list-of-cons
+        collect x into cars
+        collect y into cdrs
+        finally (return (values cars cdrs))))
+
+(defun unzip (list-of-lists)
+  (let (unzipped)
+    (loop until (-> list-of-lists car null)
+          do (push (mapcar #'car list-of-lists) unzipped)
+             (setf list-of-lists (mapcar #'cdr list-of-lists)))
+    (apply #'values (reverse unzipped))))
+
+;; TODO: You could dispatch between UNZIP and UNZIP-PAIRS by seeing if the first
+;; list-of-X is a CONS or a LIST.
+
+;;;; Grid functions
+(defvar *cardinals* '(:north :east :south :west))
+(defvar *cardinals-pos-delta* '((-1 . 0) (0 . 1) (1 . 0) (0 . -1)))
+(defvar *inter-cardinals* '(:north-east :south-east :south-west :north-west))
+(defvar *inter-cardinals-pos-delta* '((-1 . 1) (1 . 1) (1 . -1) (-1 . -1)))
+(defvar *8-winds* (append *cardinals* *inter-cardinals*))
+(defvar *8-winds-pos-delta* (append *cardinals-pos-delta* *inter-cardinals-pos-delta*))
+
+;; TODO: Something to get the opposite direction from the above.
+
+(defun pos+ (p1 p2)
+  (cons (+ (car p1) (car p2))
+        (+ (cdr p1) (cdr p2))))
+
 ;; how can i make it so i can easily do pos or i,j as argument?
-(defun 2d-neighbors (M i j &key (ignore-bounds nil)
-                             (reachable? (lambda (M pos dir) (list M pos dir)))
-                             (wanted-directions '(:south :east :south-east :north :west :north-west :south-west :north-east)))
+(defun 2d-neighbors (M i j &key (reachable? (lambda (M pos dir) (list M pos dir)))
+                             (wanted-directions *cardinals*))
   (let ((maxrow (array-dimension M 0))
         (maxcol (array-dimension M 1))
-        ;; can i do this in a nicer way?
+        ;; can i do this in a nicer way? use ZIP-PAIRS POS+
         (all-indices (list (cons (1+ i) j)
                            (cons i (1+ j))
                            (cons (1+ i) (1+ j))
@@ -325,3 +360,8 @@ NIL
                  (push direction valid-directions))
       (values valid-indices
               valid-directions))))
+
+;; TODO: define a WALK function that operates with 2D-NEIGHBORS.
+
+;; TODO: integrate Prolog somehow?
+;; what if i just embedded swipl? https://www.swi-prolog.org/pldoc/man?section=embedded
