@@ -27,4 +27,5 @@
            :day-23
            :day-24
            :day-25
-           :symb))
+           :symb
+           :group))

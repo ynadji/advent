@@ -16,7 +16,8 @@
 ;; NB: Captures TEST and IS from :FIVEAM. Evaluates DAY multiple times, but we
 ;; only use it below so it isn't super important. I would rather have this in
 ;; utils.lisp but it would search for IS/TEST in AOC2023 instead of
-;; TEST-AOC2023. Wasn't sure how to fix that.
+;; TEST-AOC2023. Wasn't sure how to fix that. Obviously only makes sense for my
+;; inputs d;D
 (defmacro make-aoc-tests (test-cases)
   `(progn
      ,@(loop for (day expect1 expect2) in test-cases
