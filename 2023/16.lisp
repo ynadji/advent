@@ -38,7 +38,7 @@
                        (push np to-visit)
                        (push nd directions)))))))
     (-<>> visited
-      alexandria:hash-table-keys
+      ax:hash-table-keys
       (mapcar #'car)
       (remove-duplicates <> :test #'equal)
       length)))

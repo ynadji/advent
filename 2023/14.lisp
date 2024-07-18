@@ -3,12 +3,12 @@
 (defun roll-right (chars &optional (acc nil) (rocks nil) (dots nil))
   "Recurse over CHARS until we hit a #\#, then CONS the rolled order of that
 group. Do one more CONS when we run out of CHARS and REVERSE FLATTEN."
-  (if-let ((c (first chars)))
+  (ax:if-let ((c (first chars)))
     (case c
       (#\. (roll-right (rest chars) acc rocks (cons c dots)))
       (#\O (roll-right (rest chars) acc (cons c rocks) dots))
       (#\# (roll-right (rest chars) (cons (append dots rocks (list #\#)) acc) nil nil)))
-    (alexandria:flatten (reverse (cons (append dots rocks) acc)))))
+    (ax:flatten (reverse (cons (append dots rocks) acc)))))
 
 (defun score-chars (chars)
   (loop for i from 1 for c in chars sum (if (char= c #\O) i 0)))
@@ -37,7 +37,7 @@ group. Do one more CONS when we run out of CHARS and REVERSE FLATTEN."
   (let ((northern-chars (->> input-file uiop:read-file-lines (mapcar #'string-to-chars)))
         (cache (make-hash-table :test #'equal :size 1024)))
     (loop for cycles from 0
-          do (if-let ((prev-cycle (gethash northern-chars cache)))
+          do (ax:if-let ((prev-cycle (gethash northern-chars cache)))
                (progn
                  (loop repeat (mod (- 1000000000 cycles)
                                    (- cycles prev-cycle))

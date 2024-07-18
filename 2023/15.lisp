@@ -25,7 +25,7 @@
                (let ((i (hash-score label)))
                  (if (eq op :minus)
                      (setf (aref boxes i) (remove label (aref boxes i) :test #'string= :key #'car))
-                     (if-let ((old-lens (assoc label (aref boxes i) :test #'string=)))
+                     (ax:if-let ((old-lens (assoc label (aref boxes i) :test #'string=)))
                        (setf (cdr old-lens) focal-length)
                        (push (cons label focal-length) (aref boxes i)))))))
     (loop for box across boxes for box-idx from 1 sum (focusing-power box box-idx))))

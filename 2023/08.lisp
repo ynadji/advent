@@ -41,7 +41,7 @@
   (multiple-value-bind (route network) (read-map input-file)
     (let ((starts (remove-if-not (lambda (state)
                                    (str:ends-with? "A" state))
-                                 (alexandria:hash-table-keys network))))
+                                 (ax:hash-table-keys network))))
       (apply #'lcm (mapcar (lambda (start)
                              (traverse-network route start "fake" network :part-2? t))
                            starts)))))

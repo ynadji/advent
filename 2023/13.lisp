@@ -16,7 +16,7 @@
              (return pivot))))
 
 (defun find-pivot (mirror)
-  (if-let ((pivot (find-pivot-aux mirror)))
+  (ax:if-let ((pivot (find-pivot-aux mirror)))
     (values (* pivot 100) :horizontal)
     (values (find-pivot-aux (transpose mirror)) :vertical)))
 
@@ -27,12 +27,12 @@
 
 (defun find-all-pivots (mirror)
   (let ((all-pivots))
-    (when-let ((pivots (find-all-pivots-aux mirror)))
+    (ax:when-let ((pivots (find-all-pivots-aux mirror)))
       (dolist (pivot pivots)
-       (push (list (* pivot 100) :horizontal) all-pivots)))
-    (when-let ((pivots (find-all-pivots-aux (transpose mirror))))
+        (push (list (* pivot 100) :horizontal) all-pivots)))
+    (ax:when-let ((pivots (find-all-pivots-aux (transpose mirror))))
       (dolist (pivot pivots)
-       (push (list pivot :vertical) all-pivots)))
+        (push (list pivot :vertical) all-pivots)))
     all-pivots))
 
 (defun sum-pivots (mirrors)

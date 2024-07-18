@@ -64,162 +64,6 @@ a unique identifier that maps X to a unique, increasing integer."
             (progn
               (setf (gethash x symbol->index) (incf index)))))))
 
-(defmacro if-let (bindings &body body)
-  "Bind `bindings` in parallel and execute `then` if all are true, or `else` otherwise.
-
-  `body` must be of the form `(...optional-declarations... then else)`.
-
-  This macro combines `if` and `let`.  It takes a list of bindings and
-  binds them like `let` before executing the `then` branch of `body`, but
-  if any binding's value evaluates to `nil` the process stops there and the
-  `else` branch is immediately executed (with no bindings in effect).
-
-  If any `optional-declarations` are included they will only be in effect
-  for the `then` branch.
-
-  Examples:
-
-    (if-let ((a (progn (print :a) 1))
-             (b (progn (print :b) 2)))
-      (list a b)
-      'nope)
-    ; =>
-    :A
-    :B
-    (1 2)
-
-    (if-let ((a (progn (print :a) nil))
-             (b (progn (print :b) 2)))
-      (list a b)
-      'nope)
-    ; =>
-    :A
-    NOPE
-
-  "
-  (alexandria:with-gensyms (outer inner)
-    (multiple-value-bind (body declarations) (alexandria:parse-body body)
-      (destructuring-bind (then else) body
-        `(block ,outer
-           (block ,inner
-             (let ,(loop :for (symbol value) :in bindings
-                         :collect `(,symbol (or ,value
-                                                (return-from ,inner nil))))
-               ,@declarations
-               (return-from ,outer ,then)))
-           ,else)))))
-
-;; TODO update docs here
-(defmacro if-let* (bindings &body body)
-  "Bind `bindings` in parallel and execute `then` if all are true, or `else` otherwise.
-
-  `body` must be of the form `(...optional-declarations... then else)`.
-
-  This macro combines `if` and `let`.  It takes a list of bindings and
-  binds them like `let` before executing the `then` branch of `body`, but
-  if any binding's value evaluates to `nil` the process stops there and the
-  `else` branch is immediately executed (with no bindings in effect).
-
-  If any `optional-declarations` are included they will only be in effect
-  for the `then` branch.
-
-  Examples:
-
-    (if-let ((a (progn (print :a) 1))
-              (b (progn (print :b) 2)))
-      (list a b)
-      'nope)
-    ; =>
-    :A
-    :B
-    (1 2)
-
-    (if-let ((a (progn (print :a) nil))
-             (b (progn (print :b) 2)))
-      (list a b)
-      'nope)
-    ; =>
-    :A
-    NOPE
-
-  "
-  (alexandria:with-gensyms (outer inner)
-    (multiple-value-bind (body declarations) (alexandria:parse-body body)
-      (destructuring-bind (then else) body
-        `(block ,outer
-           (block ,inner
-             (let* ,(loop :for (symbol value) :in bindings
-                          :collect `(,symbol (or ,value
-                                                 (return-from ,inner nil))))
-               ,@declarations
-               (return-from ,outer ,then)))
-           ,else)))))
-
-(defmacro when-let (bindings &body body)
-  "Bind `bindings` in parallel and execute `body`, short-circuiting on `nil`.
-
-  This macro combines `when` and `let`.  It takes a list of bindings and
-  binds them like `let` before executing `body`, but if any binding's value
-  evaluates to `nil` the process stops and `nil` is immediately returned.
-
-  Examples:
-
-    (when-let ((a (progn (print :a) 1))
-               (b (progn (print :b) 2))
-      (list a b))
-    ; =>
-    :A
-    :B
-    (1 2)
-
-    (when-let ((a (progn (print :a) nil))
-               (b (progn (print :b) 2)))
-      (list a b))
-    ; =>
-    :A
-    NIL
-
-  "
-  (alexandria:with-gensyms (block)
-    `(block ,block
-       (let ,(loop :for (symbol value) :in bindings
-                   :collect `(,symbol (or ,value
-                                          (return-from ,block nil))))
-         ,@body))))
-
-;; TODO update docs
-(defmacro when-let* (bindings &body body)
-  "Bind `bindings` in parallel and execute `body`, short-circuiting on `nil`.
-
-  This macro combines `when` and `let`.  It takes a list of bindings and
-  binds them like `let` before executing `body`, but if any binding's value
-  evaluates to `nil` the process stops and `nil` is immediately returned.
-
-  Examples:
-
-    (when-let ((a (progn (print :a) 1))
-               (b (progn (print :b) 2))
-      (list a b))
-    ; =>
-    :A
-    :B
-    (1 2)
-
-    (when-let ((a (progn (print :a) nil))
-               (b (progn (print :b) 2)))
-      (list a b))
-    ; =>
-    :A
-    NIL
-
-  "
-  (alexandria:with-gensyms (block)
-    `(block ,block
-       (let* ,(loop :for (symbol value) :in bindings
-                    :collect `(,symbol (or ,value
-                                           (return-from ,block nil))))
-         ,@body))))
-
 ;; AOC utils
 (defun make-cookie-jar (session-cookie)
   (make-instance 'drakma:cookie-jar
@@ -231,7 +75,7 @@ a unique identifier that maps X to a unique, increasing integer."
   (defun fetch-day-input-file (year day)
     (let ((cached-file (format nil "~a-input.txt" day))
           (url (format nil "https://adventofcode.com/~a/day/~a/input" year day)))
-      (if-let ((path (probe-file cached-file)))
+      (ax:if-let ((path (probe-file cached-file)))
         path
         (progn
           (with-open-file (out cached-file :if-does-not-exist :create :direction :output)
@@ -336,7 +180,7 @@ a unique identifier that maps X to a unique, increasing integer."
 
 ;; seems much slower than POS+ given the output from DISASSEMBLE
 (defun idx+ (p1 p2)
-  (declare (optimize (speed 3) (safety 0)))
+  ;;(declare (optimize (speed 3) (safety 0)))
   (make-2d-index :x (+ (2d-index-x p1) (2d-index-x p2))
                  :y (+ (2d-index-y p1) (2d-index-y p2))))
 
@@ -346,6 +190,7 @@ a unique identifier that maps X to a unique, increasing integer."
         (the fixnum (+ (the fixnum (cdr p1)) (the fixnum (cdr p2))))))
 
 ;; how can i make it so i can easily do pos or i,j as argument?
+;; this will likely be a bottleneck. how can i make it faster?
 (defun 2d-neighbors (M i j &key (reachable? (lambda (M pos dir) (list M pos dir)))
                              (wanted-directions *cardinals*))
   (declare (type (simple-array standard-char (* *)) M)
