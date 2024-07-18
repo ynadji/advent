@@ -37,7 +37,14 @@
                   do (dolist (nd (next-directions (aref grid (car np) (cdr np)) nds))
                        (push np to-visit)
                        (push nd directions)))))))
-    visited))
+    (-<>> visited
+      alexandria:hash-table-keys
+      (mapcar #'car)
+      (remove-duplicates <> :test #'equal)
+      length)))
+
+(defun day-16-part-1 (input-file)
+  (-> input-file read-maze (pew-pew '(0 . 0) :east)))
 
 (defun border-starts (grid)
   (let ((nrows (1- (array-dimension grid 0)))
@@ -49,24 +56,10 @@
                   collect (cons (cons i 0) :east)
                   collect (cons (cons i ncols) :west)))))
 
-(defun day-16-part-1 (input-file)
-  (let* ((maze (read-maze input-file))
-         (visited-dirs (pew-pew maze '(0 . 0) :east))
-         (visited (remove-duplicates (mapcar #'car (alexandria:hash-table-keys visited-dirs)) :test #'equal)))
-    ;;(print-maze maze visited :color? t)
-    (length visited)
-    ))
-
 (defun day-16-part-2 (input-file)
-  (let* ((grid (read-maze input-file))
-         ;;(visited-dirs (pew-pew maze '(0 . 0) :east))
-         ;;(visited (remove-duplicates (mapcar #'car (alexandria:hash-table-keys visited-dirs)) :test #'equal))
-         )
-    ;;(print-maze maze visited :color? t)
+  (let ((grid (read-maze input-file)))
     (loop for (pos . dir) in (border-starts grid)
-          maximize (let* ((visited-dirs (pew-pew grid pos dir))
-                          (visited (remove-duplicates (mapcar #'car (alexandria:hash-table-keys visited-dirs)) :test #'equal)))
-                     (length visited)))))
+          maximize (pew-pew grid pos dir))))
 
 (defun day-16 ()
   (let ((f (fetch-day-input-file 2023 16)))
