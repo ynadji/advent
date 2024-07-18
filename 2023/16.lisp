@@ -18,21 +18,9 @@
     (#\/ (case dir (:north '(:east)) (:east '(:north)) (:south '(:west)) (:west '(:south))))
     (#\\ (case dir (:north '(:west)) (:west '(:north)) (:south '(:east)) (:east '(:south))))))
 
-(defun visit-equal (pd1 pd2)
-  (and (equal (car pd1) (car pd2))
-       (or (eq (cdr pd1) (cdr pd2))
-           (eq (cdr pd1) (opposite-direction (cdr pd2))))))
-
 (defun pew-pew (grid start direction)
-  ;; visited needs to track both the location _and_ the direction it
-  ;; entered with so we can make sure perpendicular crossings continue. i
-  ;; _think_ that's the only case when things should be revisited, which
-  ;; means :east/:west and :north/:south should both count, i.e., if we
-  ;; entered from going :north if we go :south through the same point we
-  ;; will only repeat. and likewise for :east/:west.
-  ;;
-  ;; well that's def not true!
-  (let (to-visit directions visited)
+  (let ((visited (make-hash-table :test #'equal :size 4096))
+        to-visit directions)
     (dolist (nd (next-directions (aref grid (car start) (cdr start)) direction))
       (push start to-visit)
       (push nd directions))
@@ -40,33 +28,45 @@
       (let* ((curr-pos (pop to-visit))
              (dir (pop directions))
              (pos-dir (cons curr-pos dir)))
-        ;;(format t "(when (not (member ~a ~a :test #'equal)))~%" pos-dir visited)
-        (when (not (member pos-dir visited :test #'equal))
-          ;;(format t "visiting ~a from ~a~%" curr-pos dir)
-          (push pos-dir visited)
+        (when (not (gethash pos-dir visited))
+          (setf (gethash pos-dir visited) t)
           (multiple-value-bind (next-positions next-directions) (2d-neighbors grid (car curr-pos) (cdr curr-pos) :wanted-directions (list dir))
-            ;;(format t "next-positions: ~a next-directions: ~a~%" next-positions next-directions)
             (loop for np in next-positions for nds in next-directions
                   ;; NEXT-DIRECTIONS can return multiple values, e.g., from
                   ;; #\- and #\| splitters.
-                  do ;;(format t "np: ~a, nds: ~a~%" np nds)
-                     ;;(format t "c: ~@c next-directions: ~a~%" (aref grid (car np) (cdr np)) (next-directions (aref grid (car np) (cdr np)) nds))
-                     (dolist (nd (next-directions (aref grid (car np) (cdr np)) nds))
+                  do (dolist (nd (next-directions (aref grid (car np) (cdr np)) nds))
                        (push np to-visit)
-                       (push nd directions)
-                       ;;(format t "to-visit: ~a, directions: ~a~%" to-visit directions)
-                       ))))))
+                       (push nd directions)))))))
     visited))
+
+(defun border-starts (grid)
+  (let ((nrows (1- (array-dimension grid 0)))
+        (ncols (1- (array-dimension grid 1))))
+    (append (loop for j upto ncols
+                  collect (cons (cons 0 j) :south)
+                  collect (cons (cons nrows j) :north))
+            (loop for i upto nrows
+                  collect (cons (cons i 0) :east)
+                  collect (cons (cons i ncols) :west)))))
 
 (defun day-16-part-1 (input-file)
   (let* ((maze (read-maze input-file))
          (visited-dirs (pew-pew maze '(0 . 0) :east))
-         (visited (remove-duplicates (mapcar #'car visited-dirs) :test #'equal)))
-    ;(print-maze maze visited :color? t)
+         (visited (remove-duplicates (mapcar #'car (alexandria:hash-table-keys visited-dirs)) :test #'equal)))
+    ;;(print-maze maze visited :color? t)
     (length visited)
     ))
 
-(defun day-16-part-2 (input-file) (progn input-file -1))
+(defun day-16-part-2 (input-file)
+  (let* ((grid (read-maze input-file))
+         ;;(visited-dirs (pew-pew maze '(0 . 0) :east))
+         ;;(visited (remove-duplicates (mapcar #'car (alexandria:hash-table-keys visited-dirs)) :test #'equal))
+         )
+    ;;(print-maze maze visited :color? t)
+    (loop for (pos . dir) in (border-starts grid)
+          maximize (let* ((visited-dirs (pew-pew grid pos dir))
+                          (visited (remove-duplicates (mapcar #'car (alexandria:hash-table-keys visited-dirs)) :test #'equal)))
+                     (length visited)))))
 
 (defun day-16 ()
   (let ((f (fetch-day-input-file 2023 16)))
