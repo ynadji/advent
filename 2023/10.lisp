@@ -38,7 +38,7 @@ all directions are valid."
   (let* ((lines (uiop:read-file-lines input-file))
          (rows (length lines))
          (cols (length (first lines)))
-         (maze (make-array (list rows cols)))
+         (maze (make-array (list rows cols) :element-type 'base-char))
          (start (cons 0 0)))
     (loop for row in lines for i from 0 do
       (loop for x across row for j from 0 do
@@ -128,7 +128,8 @@ in SLIME."
                       ((member (cons i j) cycle :test #'equal)
                        (format t "~c[32m~a~c[0m" #\ESC c #\ESC)) ; green for pipe
                       (t
-                       (format t "~a" (aref maze i j)))) ; black for rest
+                       ;; \e[0;30m
+                       (format t "~c[30m~a~c[0m" #\ESC c #\ESC))) ; black for rest
                 (format t "~a" (aref maze i j))))
     (format t "~&")))
 
@@ -212,6 +213,8 @@ be #\I. This only infers the inside tiles that are nearest to the pipe in CYCLE.
 (defun all-neighbors (maze pos)
   (2d-neighbors maze (car pos) (cdr pos)))
 
+;; Maybe think about using https://en.wikipedia.org/wiki/Shoelace_formula
+;; instead?
 (defun flood-fill (maze known-insides cycle)
   "Fill the remaining insides of MAZE bound by CYCLE starting with a subset of all
 inside tiles in KNOWN-INSIDES that were found by LABEL-INSIDE-OUTSIDE. Return

@@ -5,16 +5,7 @@
 ;; string of 1,2,3 to (1 2 3) for sure
 ;; see if other functions should be moved here?
 ;; export all of these!
-;; add DIS function from On Lisp book!
 ;; maybe just use http://quickutil.org/how ?
-
-;; on lisp
-(defun mkstr (&rest args)
-  (with-output-to-string (s)
-    (dolist (a args) (princ a s))))
-
-(defun symb (&rest args)
-  (values (intern (apply #'mkstr args))))
 
 (defun group (list n)
   (declare (fixnum n))
@@ -24,6 +15,39 @@
                  (aux (nthcdr n list) n (cons (subseq list 0 (min n (length list))) acc)))))
     (when (> n 0)
       (aux list n nil))))
+
+;; let over lambda and on lisp stuff
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun mkstr (&rest args)
+    (with-output-to-string (s)
+      (dolist (a args) (princ a s))))
+
+  (defun symb (&rest args)
+    (values (intern (apply #'mkstr args))))
+
+  (defun |#`-reader| (stream sub-char numarg)
+    (declare (ignore sub-char))
+    (unless numarg (setq numarg 1))
+    `(lambda ,(loop for i from 1 to numarg
+                    collect (symb 'a i))
+       ,(funcall
+         (get-macro-character #\`) stream nil)))
+
+  (set-dispatch-macro-character #\# #\` #'|#`-reader|))
+
+(defmacro dis (args &rest body)
+  `(disassemble
+    (compile nil
+             (lambda ,(mapcar (lambda (a)
+                                (if (consp a)
+                                    (cadr a)
+                                    a))
+                       args)
+               (declare
+                ,@(mapcar
+                   #`(type ,(car a1) ,(cadr a1))
+                   (remove-if-not #'consp args)))
+               ,@body))))
 
 (defun circular! (items)
   "Modifies the last cdr of list ITEMS, returning a circular list"
@@ -308,20 +332,34 @@ a unique identifier that maps X to a unique, increasing integer."
 (defun opposite-direction (direction)
   (nth (mod (+ 4 (position direction *8-winds*)) 8) *8-winds*))
 
+(defstruct 2d-index (x 0 :type fixnum) (y 0 :type fixnum))
+
+;; seems much slower than POS+ given the output from DISASSEMBLE
+(defun idx+ (p1 p2)
+  (declare (optimize (speed 3) (safety 0)))
+  (make-2d-index :x (+ (2d-index-x p1) (2d-index-x p2))
+                 :y (+ (2d-index-y p1) (2d-index-y p2))))
+
 (defun pos+ (p1 p2)
-  (cons (+ (car p1) (car p2))
-        (+ (cdr p1) (cdr p2))))
+  (declare (optimize (speed 3) (safety 0)))
+  (cons (the fixnum (+ (the fixnum (car p1)) (the fixnum (car p2))))
+        (the fixnum (+ (the fixnum (cdr p1)) (the fixnum (cdr p2))))))
 
 ;; how can i make it so i can easily do pos or i,j as argument?
 (defun 2d-neighbors (M i j &key (reachable? (lambda (M pos dir) (list M pos dir)))
                              (wanted-directions *cardinals*))
+  (declare (type (simple-array standard-char (* *)) M)
+           (fixnum i j)
+           (type (compiled-function) reachable?)
+           (optimize (speed 3) (safety 0)))
   (let ((maxrow (array-dimension M 0))
         (maxcol (array-dimension M 1))
         (all-indices (mapcar (lambda (p) (pos+ (cons i j) p)) *8-winds-pos-delta*)))
+    (declare (fixnum maxrow maxcol))
     (let (valid-indices valid-directions)
       (loop for (x . y) in all-indices for direction in *8-winds*
-            when (and (and (>= x 0) (< x maxrow))
-                      (and (>= y 0) (< y maxcol))
+            when (and (and (>= (the fixnum x) 0) (< x maxrow))
+                      (and (>= (the fixnum y) 0) (< y maxcol))
                       (and (member direction wanted-directions))
                       (and (funcall reachable? M (cons x y) direction)))
               do (push (cons x y) valid-indices)
