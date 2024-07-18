@@ -6,6 +6,7 @@
 ;; see if other functions should be moved here?
 ;; export all of these!
 ;; add DIS function from On Lisp book!
+;; maybe just use http://quickutil.org/how ?
 
 ;; on lisp
 (defun mkstr (&rest args)
@@ -251,70 +252,47 @@ a unique identifier that maps X to a unique, increasing integer."
 ;; can be printed in color. Maybe a separate PRINT-ARRAY is needed where colors
 ;; can be based on (1) MEMBER of POS or (2) MEMBER of (AREF i j).
 
-(defun transpose (lines)
-  "Transposes a list of strings. TODO: Dispatch this by type so lists of strings
-return lists of strings and list of lists return list of lists. TODO:
-Consolidate TRANSPOSE and TRANSPOSE-SEQS."
-  (->> lines
-    (mapcar (lambda (s) (coerce s 'list)))
-    (apply #'mapcar 'list)
-    (mapcar (lambda (cs) (coerce cs 'string)))))
+(defun string-to-chars (string) (coerce string 'list))
+(defun chars-to-string (chars) (coerce chars 'string))
 
-(defun transpose-seqs (lines)
-  (apply #'mapcar 'list lines))
+(defun transpose-strings (lines)
+  "Transposes a list of strings."
+  (->> lines
+    (mapcar #'string-to-chars)
+    (apply #'mapcar 'list)
+    (mapcar #'chars-to-string)))
+
+(defun transpose (lines)
+  (cond ((null lines) nil)
+        ((listp (first lines)) (apply #'mapcar 'list lines))
+        ((stringp (first lines)) (transpose-strings lines))))
 
 (defun rotate-90-clockwise (rows)
-  "Rotate a LIST of reversable things (like STRINGs or SEQUENCEs)
-AOC2023> (print-input (uiop:read-file-lines #P\"14-test-input.txt\"))
-O....#....
-O.OO#....#
-.....##...
-OO.#O....O
-.O.....O#.
-O.#..O.#.#
-..O..#O..O
-.......O..
-#....###..
-#OO..#....
-NIL
-AOC2023> (print-input (rotate-90-clockwise (uiop:read-file-lines #P\"14-test-input.txt\")))
-##..O.O.OO
-O....OO...
-O..O#...O.
-......#.O.
-......O.#.
-##.#O..#.#
-.#.O...#..
-.#O.#O....
-.....#....
-...O#.O.#.
-NIL
-"
-  (->> rows
-    transpose-seqs
-    (mapcar #'reverse)))
+  "Rotate ROWS of reversable things (like STRINGs or SEQUENCEs)"
+  (->> rows transpose (mapcar #'reverse)))
 
 (defun rotate-270-clockwise (rows)
   (-> rows rotate-90-clockwise rotate-90-clockwise rotate-90-clockwise))
 
-(defun string-to-chars (string) (coerce string 'list))
-(defun chars-to-string (chars) (coerce chars 'string))
+(defun zip (&rest lists) (transpose lists))
+(defun unzip (list-of-lists) (transpose list-of-lists))
 
 (defun zip-pairs (list1 list2) (mapcar #'cons list1 list2))
-(defun zip (&rest args) (apply #'mapcar #'list args))
-
 (defun unzip-pairs (list-of-cons)
   (loop for (x . y) in list-of-cons
         collect x into cars
         collect y into cdrs
         finally (return (values cars cdrs))))
 
-(defun unzip (list-of-lists)
-  (let (unzipped)
-    (loop until (-> list-of-lists car null)
-          do (push (mapcar #'car list-of-lists) unzipped)
-             (setf list-of-lists (mapcar #'cdr list-of-lists)))
-    (apply #'values (reverse unzipped))))
+(defun flatten-once (list)
+  (loop for x in list
+        if (listp x)
+          append x
+        else
+          collect x))
+
+(defun interleave (&rest lists)
+  (flatten-once (apply #'zip lists)))
 
 ;; TODO: You could dispatch between UNZIP and UNZIP-PAIRS by seeing if the first
 ;; list-of-X is a CONS or a LIST.
@@ -324,10 +302,11 @@ NIL
 (defvar *cardinals-pos-delta* '((-1 . 0) (0 . 1) (1 . 0) (0 . -1)))
 (defvar *inter-cardinals* '(:north-east :south-east :south-west :north-west))
 (defvar *inter-cardinals-pos-delta* '((-1 . 1) (1 . 1) (1 . -1) (-1 . -1)))
-(defvar *8-winds* (append *cardinals* *inter-cardinals*))
-(defvar *8-winds-pos-delta* (append *cardinals-pos-delta* *inter-cardinals-pos-delta*))
+(defvar *8-winds* (interleave *cardinals* *inter-cardinals*))
+(defvar *8-winds-pos-delta* (interleave *cardinals-pos-delta* *inter-cardinals-pos-delta*))
 
-;; TODO: Something to get the opposite direction from the above.
+(defun opposite-direction (direction)
+  (nth (mod (+ 4 (position direction *8-winds*)) 8) *8-winds*))
 
 (defun pos+ (p1 p2)
   (cons (+ (car p1) (car p2))
@@ -338,20 +317,9 @@ NIL
                              (wanted-directions *cardinals*))
   (let ((maxrow (array-dimension M 0))
         (maxcol (array-dimension M 1))
-        ;; can i do this in a nicer way? use ZIP-PAIRS POS+
-        (all-indices (list (cons (1+ i) j)
-                           (cons i (1+ j))
-                           (cons (1+ i) (1+ j))
-
-                           (cons (1- i) j)
-                           (cons i (1- j))
-                           (cons (1- i) (1- j))
-
-                           (cons (1+ i) (1- j))
-                           (cons (1- i) (1+ j))))
-        (all-directions (list :south :east :south-east :north :west :north-west :south-west :north-east)))
+        (all-indices (mapcar (lambda (p) (pos+ (cons i j) p)) *8-winds-pos-delta*)))
     (let (valid-indices valid-directions)
-      (loop for (x . y) in all-indices for direction in all-directions
+      (loop for (x . y) in all-indices for direction in *8-winds*
             when (and (and (>= x 0) (< x maxrow))
                       (and (>= y 0) (< y maxcol))
                       (and (member direction wanted-directions))
@@ -361,7 +329,9 @@ NIL
       (values valid-indices
               valid-directions))))
 
-;; TODO: define a WALK function that operates with 2D-NEIGHBORS.
+;; TODO: define a WALK function that operates with 2D-NEIGHBORS. By default,
+;; tracks visited nodes and doesn't go back. should prob have DFS vs. BFS
+;; options.
 
 ;; TODO: integrate Prolog somehow?
 ;; what if i just embedded swipl? https://www.swi-prolog.org/pldoc/man?section=embedded
