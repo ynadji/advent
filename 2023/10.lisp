@@ -85,8 +85,8 @@ to. E.g., a #\7 connects due :west and :south. It can only connect with pipe
 pieces that connect :east or :north, respectively. The one exception is #\S,
 which can connect to any other pipe piece. #\. have no exits, so cannot connect
 to any pipe piece."
-  (2d-neighbors maze (car pos) (cdr pos) :wanted-directions (exits maze pos)
-                                         :reachable? #'accepts-from))
+  (2d-neighbors maze pos :wanted-directions (exits maze pos)
+                         :reachable? #'accepts-from))
 
 (defun next-pos (maze pos prev-pos)
   "A given position can only connect to at most two other pipes. Since we only care

@@ -172,6 +172,7 @@ a unique identifier that maps X to a unique, increasing integer."
 (defvar *inter-cardinals-pos-delta* '((-1 . 1) (1 . 1) (1 . -1) (-1 . -1)))
 (defvar *8-winds* (interleave *cardinals* *inter-cardinals*))
 (defvar *8-winds-pos-delta* (interleave *cardinals-pos-delta* *inter-cardinals-pos-delta*))
+(defvar *8-winds/deltas* (mapcar #'cons *8-winds* *8-winds-pos-delta*))
 
 (defun opposite-direction (direction)
   (nth (mod (+ 4 (position direction *8-winds*)) 8) *8-winds*))
@@ -191,15 +192,18 @@ a unique identifier that maps X to a unique, increasing integer."
 
 ;; how can i make it so i can easily do pos or i,j as argument?
 ;; this will likely be a bottleneck. how can i make it faster?
-(defun 2d-neighbors (M i j &key (reachable? (lambda (M pos dir) (list M pos dir)))
+;; i can probably define a compiler macro for this: https://www.lispworks.com/documentation/HyperSpec/Body/m_define.htm
+;;
+;; since we typically know the values of WANTED-DIRECTIONS at run-time. also uhh
+;; why are using *8-winds... et al. instead of just the WANTED-DIRECTIONS?
+(defun 2d-neighbors (M pos &key (reachable? (lambda (M pos dir) (declare (ignorable M pos dir)) t))
                              (wanted-directions *cardinals*))
   (declare (type (simple-array standard-char (* *)) M)
-           (fixnum i j)
            (type (compiled-function) reachable?)
            (optimize (speed 3) (safety 0)))
   (let ((maxrow (array-dimension M 0))
         (maxcol (array-dimension M 1))
-        (all-indices (mapcar (lambda (p) (pos+ (cons i j) p)) *8-winds-pos-delta*)))
+        (all-indices (mapcar (lambda (p) (pos+ pos p)) *8-winds-pos-delta*)))
     (declare (fixnum maxrow maxcol))
     (let (valid-indices valid-directions)
       (loop for (x . y) in all-indices for direction in *8-winds*
