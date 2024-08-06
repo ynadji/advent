@@ -14,24 +14,6 @@ all directions are valid."
       (push :west valid))
     valid))
 
-;; a-list to map the cardinal direction to the addend needed to move POS in that
-;; direction. i.e., (ADD-PAIR POS '(-1 . 0)) -> NEW-POS such that NEW-POS is one
-;; tile :north of POS.
-(defparameter *direction-to-offset*
-  '((:north . (-1 . 0))
-    (:south . (1 . 0))
-    (:east  . (0 . 1))
-    (:west  . (0 . -1))))
-
-(defparameter *reverse-directions*
-  '((:north . :south)
-    (:south . :north)
-    (:east  . :west)
-    (:west  . :east)))
-
-(defun reverse-direction (dir)
-  (cdr (assoc dir *reverse-directions*)))
-
 (defun read-maze (input-file)
   "Reads an input file representing a maze and returns two values: the maze as a
 2-d array, and the location of the #\S as a pair."
@@ -48,36 +30,17 @@ all directions are valid."
     (values maze
             start)))
 
-(defun valid-index? (maze i j)
-  (let ((rows (array-dimension maze 0))
-        (cols (array-dimension maze 1)))
-    (and (and (>= i 0)
-              (>= j 0))
-         (and (< i rows)
-              (< j cols)))))
-
-(defun valid-pos? (maze pos)
-  (valid-index? maze (car pos) (cdr pos)))
-
 (defun exits (maze pos)
   (let* ((i (car pos))
          (j (cdr pos))
          (x (aref maze i j)))
     (connections x)))
 
-(defun add-pair (p1 p2)
-  (cons (+ (car p1) (car p2))
-        (+ (cdr p1) (cdr p2))))
-
-(defun get-new-pos (pos dir)
-  (add-pair pos
-            (cdr (assoc dir *direction-to-offset*))))
-
 (defun accepts-from (maze pos dir)
   (let* ((i (car pos))
          (j (cdr pos))
          (x (aref maze i j)))
-    (member dir (mapcar #'reverse-direction (connections x)))))
+    (member dir (mapcar #'opposite-direction (connections x)))))
 
 (defun reachable-neighbors (maze pos)
   "A neighbor is reachable iff its exits match with the pipe it is connecting
