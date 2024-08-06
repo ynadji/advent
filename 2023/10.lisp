@@ -133,115 +133,32 @@ in SLIME."
                 (format t "~a" (aref maze i j))))
     (format t "~&")))
 
-(defun relative-direction-at-char (c traveling)
-  "Return two lists that correpond to the cardinal directions to the left and
-to the right, respectively, as if just arrived to tile C after going in the
-cardinal direction TRAVELING. Corner Cs (e.g., #\L) have multiple tiles to their
-left and right.
+(defun determinant (pos1 pos2)
+  (- (* (car pos1) (cdr pos2))
+     (* (cdr pos1) (car pos2))))
 
-This could probably be greatly simplified."
-  (if (member c (coerce "|-" 'list))
-      (cond ((eq traveling :north) (values '(:west)  '(:east)))
-            ((eq traveling :south) (values '(:east)  '(:west)))
-            ((eq traveling :east)  (values '(:north) '(:south)))
-            ((eq traveling :west)  (values '(:south) '(:west))))
-      (cond ((eq c #\7)
-             (if (eq traveling :north)
-                 (values nil '(:north :east))
-                 (values '(:north :east) nil)))
-            ((eq c #\F)
-             (if (eq traveling :north)
-                 (values '(:west :north) nil)
-                 (values nil '(:west :north))))
-            ((eq c #\L)
-             (if (eq traveling :south)
-                 (values nil '(:south :west))
-                 (values '(:south :west) nil)))
-            ((eq c #\J)
-             (if (eq traveling :south)
-                 (values '(:south :east) nil)
-                 (values nil '(:south :east)))))))
+;; gets 2A
+(defun shoelace (positions)
+  (abs (loop for (pos1 pos2) on (append positions (-> positions first list)) by #'cdr
+             when pos2
+               sum (determinant pos1 pos2))))
 
-(defun infer-traveling (p1 p2)
-  "Return the cardinal direction we go to travel from p1 -> p2."
-  (loop for (direction . offset) in *direction-to-offset* do
-    (when (equal (add-pair p1 offset)
-                 p2)
-      (return direction))))
-
-(defun now-traveling (c traveling)
-  "Given the current tile's C and the direction we are currently TRAVELING (e.g.,
-:west) to enter the tile, return the direction of the tile's other exit."
-  (let* ((enter-bys (mapcar #'reverse-direction (connections c)))
-         (other-entrance (first (remove traveling enter-bys))))
-    (reverse-direction other-entrance)))
-
-(defun label-inside-outside (maze cycle)
-  "Given a MAZE and its CYCLE, begin labeling the tiles inside CYCLE. Given a
-side (:right or :left) of the pipe to consider inside while walking CYCLE, label
-non-CYCLE nodes on the inside side as being inside. We maintain all of these
-positions in INSIDES, which is returned. We also update MAZE at these tiles to
-be #\I. This only infers the inside tiles that are nearest to the pipe in CYCLE."
-  ;; how do i infer which direction is inside? i cheated a bit here by
-  ;; hardcoding it but there are only two possibilities. if you want to fix
-  ;; this, the correct answer for the following test inputs are:
-  ;; * test-input-2 is :right
-  ;; * test-input-3 is :left
-  ;; * test-input-4 is :left
-  ;; * input is :right
-  (let ((inside :right)
-        (traveling (infer-traveling (first cycle) (second cycle)))
-        (insides nil))
-    (loop for pos in (rest cycle)
-          for (i . j) = pos
-          for c = (aref maze i j) do
-            ;;(format t "traveling ~a to ~a at ~a~&" traveling c pos)
-            (multiple-value-bind (left right) (relative-direction-at-char c traveling)
-              (let ((inside-positions (remove-if-not
-                                       (lambda (p) (valid-pos? maze p))
-                                       (mapcar (lambda (d) (get-new-pos pos d))
-                                               (if (eq inside :right) right left)))))
-                
-                (loop for inside-pos in inside-positions do
-                  (unless (member inside-pos cycle :test #'equal)
-                    ;;(format t "	~a at ~a -> I~&" (aref maze (car inside-pos) (cdr inside-pos)) inside-pos)
-                    (pushnew inside-pos insides :test #'equal)
-                    (setf (aref maze (car inside-pos) (cdr inside-pos)) #\I)))))
-            (setq traveling (now-traveling c traveling)))
-    insides))
-
-(defun all-neighbors (maze pos)
-  (2d-neighbors maze (car pos) (cdr pos)))
-
-;; Maybe think about using https://en.wikipedia.org/wiki/Shoelace_formula
-;; instead?
-(defun flood-fill (maze known-insides cycle)
-  "Fill the remaining insides of MAZE bound by CYCLE starting with a subset of all
-inside tiles in KNOWN-INSIDES that were found by LABEL-INSIDE-OUTSIDE. Return
-the updated KNOWN-INSIDES so we can solve the puzzle. Update the tiles in MAZE
-so we can pretty-print our MAZR :3. BFS starting on tiles from KNOWN-INSIDES."
-  (let ((candidates (remove-duplicates (mapcan (lambda (pos) (all-neighbors maze pos)) known-insides))))
-    (loop while candidates do
-      (let ((pos (pop candidates)))
-        ;; already an I or in known-insides (do nothing)
-        ;; in the cycle (do nothing)
-        ;; otherwise, label as I, add to cycle, add all neighbors to candidates
-        (unless (or (member pos known-insides :test #'equal)
-                    (member pos cycle :test #'equal)
-                    (eq (aref maze (car pos) (cdr pos))
-                        #\I))
-          (pushnew pos known-insides)
-          (setf (aref maze (car pos) (cdr pos)) #\I)
-          (setf candidates (union candidates (all-neighbors maze pos))))))
-    known-insides))
+;; A = i + b/2 - 1
+;; i is answer
+;; b is length of cycle
+;; A - b/2 + 1 = i
+;;
+;; shoelace/2 - cycle-length/2 + 1 = i
+(defun picks-theorem (shoelace cycle-length)
+  (1+ (- (/ shoelace 2)
+         (/ cycle-length 2))))
 
 (defun day-10-part-2 (input-file)
   (multiple-value-bind (maze start) (read-maze input-file)
-    (let* ((cycle (find-cycle maze start))
-           (insides (flood-fill maze (label-inside-outside maze cycle) cycle)))
-      ;(format t "~a -> ~a~&" (first cycle) (second cycle))
-      ;(print-maze maze cycle :color? t)
-      (length insides))))
+    (let ((cycle (find-cycle maze start)))
+      ;;(format t "~a -> ~a~&" (first cycle) (second cycle))
+      ;;(print-maze maze cycle :color? t)
+      (picks-theorem (shoelace cycle) (length cycle)))))
 
 (defun day-10 ()
   (let ((f #p"10-input.txt"))
