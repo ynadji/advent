@@ -21,7 +21,7 @@
              :compare (lambda (x y)
                         (< (gethash x distances most-positive-fixnum)
                            (gethash y distances most-positive-fixnum))))))
-    (queues:)
+    ;;(queues:) ; just stopped mid thought here.
     (loop with curr = (pop to-visit)
           until (equal curr end)
           do (multiple-value-bind (new-ps dirs) (2d-neighbors heat-map curr)
