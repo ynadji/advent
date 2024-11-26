@@ -3,7 +3,7 @@
   :description "Advent of Code 2023 solutions in Common Lisp"
   :author "Yacin Nadji <ynadji@gmail.com>"
   :license "MIT"
-  :depends-on ("str" "uiop" "arrow-macros" "fset" "alexandria" "function-cache" "split-sequence" "drakma" "cl-graph")
+  :depends-on ("str" "uiop" "arrow-macros" "fset" "alexandria" "function-cache" "split-sequence" "drakma" "cl-graph" "queues.priority-queue")
   :components ((:file "pkg")
                (:file "utils")
                (:file "01")

@@ -206,6 +206,9 @@ a unique identifier that maps X to a unique, increasing integer."
         (all-indices (mapcar (lambda (p) (pos+ pos p)) *8-winds-pos-delta*)))
     (declare (fixnum maxrow maxcol))
     (let (valid-indices valid-directions)
+      ;; NB: you use i, j notation for matrices, but incorrectly use x, y here.
+      ;; i < numrows is y, j is < numcols is x. Might be worth switching to (x, y)
+      ;; notation since it's more natural.
       (loop for (x . y) in all-indices for direction in *8-winds*
             when (and (and (>= (the fixnum x) 0) (< x maxrow))
                       (and (>= (the fixnum y) 0) (< y maxcol))
