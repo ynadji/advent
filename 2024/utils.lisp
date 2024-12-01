@@ -114,7 +114,7 @@ a unique identifier that maps X to a unique, increasing integer."
 ;; AOC puzzle utils
 (defun print-input (input)
   "Prints input from puzzles after UIOP:READ-FILE-LINES."
-  (dolist (x input) (princ x) (princ #\Newline)))
+  (dolist (x input) (princ x) (terpri)))
 
 ;; TODO: Generalize the above to be more like PRINT-MAZE from 10.lisp so parts
 ;; can be printed in color. Maybe a separate PRINT-ARRAY is needed where colors
@@ -221,7 +221,11 @@ a unique identifier that maps X to a unique, increasing integer."
 
 ;; TODO: define a WALK function that operates with 2D-NEIGHBORS. By default,
 ;; tracks visited nodes and doesn't go back. should prob have DFS vs. BFS
-;; options.
+;; options. should really just look at the PAIP functions for tree walks,
+;; searching, etc. seems like at a minimum you need:
+;; * successors function
+;; * tracking the path thus far
+;; * everything that 2d-neighbors has
 
 ;; TODO: integrate Prolog somehow?
 ;; what if i just embedded swipl? https://www.swi-prolog.org/pldoc/man?section=embedded
