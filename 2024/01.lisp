@@ -7,15 +7,15 @@
            (uiop:read-file-lines input-file))))
 
 (defun day-01-part-1 (input-file)
-  (let ((lists (read-location-ids input-file)))
-    (loop for x in (sort (first lists) #'<)
-          for y in (sort (second lists) #'<)
+  (let ((both-ids (read-location-ids input-file)))
+    (loop for x in (sort (first both-ids) #'<)
+          for y in (sort (second both-ids) #'<)
           sum (abs (- x y)))))
 
 (defun day-01-part-2 (input-file)
-  (let* ((lists (read-location-ids input-file))
-         (freqs (serapeum:frequencies (second lists))))
-    (loop for x in (first lists)
+  (let* ((both-ids (read-location-ids input-file))
+         (freqs (serapeum:frequencies (second both-ids))))
+    (loop for x in (first both-ids)
           sum (* x (gethash x freqs 0)))))
 
 (defun day-01 ()
