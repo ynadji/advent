@@ -16,7 +16,7 @@
   (let* ((lists (read-location-ids input-file))
          (freqs (serapeum:frequencies (second lists))))
     (loop for x in (first lists)
-          sum (abs (* x (gethash x freqs 0))))))
+          sum (* x (gethash x freqs 0)))))
 
 (defun day-01 ()
   (let ((f (fetch-day-input-file 2024 1)))
