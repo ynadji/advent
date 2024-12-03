@@ -112,6 +112,11 @@ a unique identifier that maps X to a unique, increasing integer."
   )
 
 ;; AOC puzzle utils
+(defmacro with-input ((var string) &body body)
+  `(uiop:with-temporary-file (:pathname ,var)
+     (str:to-file ,var ,string)
+     ,@body))
+
 (defun print-input (input)
   "Prints input from puzzles after UIOP:READ-FILE-LINES."
   (dolist (x input) (princ x) (terpri)))
