@@ -1,0 +1,48 @@
+; disassembly for DAY-01-PART-1
+; Size: 184 bytes. Origin: #x701513C7CC                       ; DAY-01-PART-1
+; 7CC:       4E1300F9         STR R4, [CFP, #32]
+; 7D0:       CA915FF8         LDR R0, [R4, #-7]
+; 7D4:       ABFDFF58         LDR R1, #x701513C788            ; #<FUNCTION <>
+; 7D8:       CCFDFF58         LDR R2, #x701513C790            ; #<FUNCTION IDENTITY>
+; 7DC:       7A0300F9         STR CFP, [CSP]
+; 7E0:       16FDFF58         LDR LEXENV, #x701513C780        ; #<SB-KERNEL:FDEFN SB-IMPL::STABLE-SORT-LIST>
+; 7E4:       FA031BAA         MOV CFP, CSP
+; 7E8:       DE9240F8         LDR LR, [LEXENV, #9]
+; 7EC:       C0033FD6         BLR LR
+; 7F0:       4E1340F9         LDR R4, [CFP, #32]
+; 7F4:       EF030AAA         MOV R5, R0
+; 7F8:       4F0F00F9         STR R5, [CFP, #24]
+; 7FC:       CA1140F8         LDR R0, [R4, #1]
+; 800:       4A915FF8         LDR R0, [R0, #-7]
+; 804:       2BFCFF58         LDR R1, #x701513C788            ; #<FUNCTION <>
+; 808:       4CFCFF58         LDR R2, #x701513C790            ; #<FUNCTION IDENTITY>
+; 80C:       7A0300F9         STR CFP, [CSP]
+; 810:       96FBFF58         LDR LEXENV, #x701513C780        ; #<SB-KERNEL:FDEFN SB-IMPL::STABLE-SORT-LIST>
+; 814:       FA031BAA         MOV CFP, CSP
+; 818:       DE9240F8         LDR LR, [LEXENV, #9]
+; 81C:       C0033FD6         BLR LR
+; 820:       4F0F40F9         LDR R5, [CFP, #24]
+; 824:       EC030AAA         MOV R2, R0
+; 828:       010080D2         MOVZ NL1, #0
+; 82C:       0E000014         B L2
+; 830: L0:   EA915FF8         LDR R0, [R5, #-7]
+; 834:       EB1140F8         LDR R1, [R5, #1]
+; 838:       EF030BAA         MOV R5, R1
+; 83C:       9F011DEB         CMP R2, NULL
+; 840:       60010054         BEQ L3
+; 844:       8B915FF8         LDR R1, [R2, #-7]
+; 848:       8C1140F8         LDR R2, [R2, #1]
+; 84C:       40FD4193         ASR NL0, R0, #1
+; 850:       00048BCB         SUB NL0, NL0, R1, ASR #1
+; 854:       6001F8B6         TBZ NL0, #63, L4
+; 858:       E00300CB         NEG NL0, NL0
+; 85C: L1:   0004818B         ADD NL0, NL0, NL1, ASR #1
+; 860:       01F87FD3         LSL NL1, NL0, #1
+; 864: L2:   FF011DEB         CMP R5, NULL
+; 868:       41FEFF54         BNE L0
+; 86C: L3:   EA0301AA         MOV R0, NL1
+; 870:       FB031AAA         MOV CSP, CFP
+; 874:       5A7B40A9         LDP CFP, LR, [CFP]
+; 878:       BF0300F1         CMP NULL, #0
+; 87C:       C0035FD6         RET
+; 880: L4:   F7FFFF17         B L1

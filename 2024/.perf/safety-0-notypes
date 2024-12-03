@@ -1,0 +1,48 @@
+; disassembly for DAY-01-PART-1
+; Size: 184 bytes. Origin: #x701513D6DC                       ; DAY-01-PART-1
+; 6DC:       4D1300F9         STR R3, [CFP, #32]
+; 6E0:       AA915FF8         LDR R0, [R3, #-7]
+; 6E4:       2BFEFF58         LDR R1, #x701513D6A8            ; #<FUNCTION SB-KERNEL:TWO-ARG-<>
+; 6E8:       7A0300F9         STR CFP, [CSP]
+; 6EC:       B6FDFF58         LDR LEXENV, #x701513D6A0        ; #<SB-KERNEL:FDEFN SORT>
+; 6F0:       970080D2         MOVZ NARGS, #4
+; 6F4:       FA031BAA         MOV CFP, CSP
+; 6F8:       DE9240F8         LDR LR, [LEXENV, #9]
+; 6FC:       C0033FD6         BLR LR
+; 700:       4D1340F9         LDR R3, [CFP, #32]
+; 704:       EE030AAA         MOV R4, R0
+; 708:       4E0F00F9         STR R4, [CFP, #24]
+; 70C:       AA1140F8         LDR R0, [R3, #1]
+; 710:       4A915FF8         LDR R0, [R0, #-7]
+; 714:       ABFCFF58         LDR R1, #x701513D6A8            ; #<FUNCTION SB-KERNEL:TWO-ARG-<>
+; 718:       7A0300F9         STR CFP, [CSP]
+; 71C:       36FCFF58         LDR LEXENV, #x701513D6A0        ; #<SB-KERNEL:FDEFN SORT>
+; 720:       970080D2         MOVZ NARGS, #4
+; 724:       FA031BAA         MOV CFP, CSP
+; 728:       DE9240F8         LDR LR, [LEXENV, #9]
+; 72C:       C0033FD6         BLR LR
+; 730:       4E0F40F9         LDR R4, [CFP, #24]
+; 734:       EC030AAA         MOV R2, R0
+; 738:       010080D2         MOVZ NL1, #0
+; 73C:       0E000014         B L2
+; 740: L0:   CA915FF8         LDR R0, [R4, #-7]
+; 744:       CB1140F8         LDR R1, [R4, #1]
+; 748:       EE030BAA         MOV R4, R1
+; 74C:       9F011DEB         CMP R2, NULL
+; 750:       60010054         BEQ L3
+; 754:       8B915FF8         LDR R1, [R2, #-7]
+; 758:       8C1140F8         LDR R2, [R2, #1]
+; 75C:       40FD4193         ASR NL0, R0, #1
+; 760:       00048BCB         SUB NL0, NL0, R1, ASR #1
+; 764:       6001F8B6         TBZ NL0, #63, L4
+; 768:       E00300CB         NEG NL0, NL0
+; 76C: L1:   0004818B         ADD NL0, NL0, NL1, ASR #1
+; 770:       01F87FD3         LSL NL1, NL0, #1
+; 774: L2:   DF011DEB         CMP R4, NULL
+; 778:       41FEFF54         BNE L0
+; 77C: L3:   EA0301AA         MOV R0, NL1
+; 780:       FB031AAA         MOV CSP, CFP
+; 784:       5A7B40A9         LDP CFP, LR, [CFP]
+; 788:       BF0300F1         CMP NULL, #0
+; 78C:       C0035FD6         RET
+; 790: L4:   F7FFFF17         B L1

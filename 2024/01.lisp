@@ -14,7 +14,7 @@
         (read-location-ids (uiop:read-file-lines f))))))
 
 (defun day-01-part-1 (both-ids)
-  (declare (optimize (speed 3))) ; fractions of a millisecond.
+  (declare (optimize (speed 3) (safety 0))) ; fractions of a millisecond.
   ;; possible measurement error, but LET can assign in parallel, while LOOP FORs
   ;; happen sequentially.
   (let ((xs (sort (first both-ids) #'<))
@@ -46,6 +46,16 @@
         ;;  0.307003 seconds of total run time (0.299618 user, 0.007385 system)
         ;;  100.00% CPU
         ;;  1,245,168 bytes consed
+        ;;
+        ;; see files in .perf that show the different asm for:
+        ;; * this code
+        ;; * this code + the described type declarations.
+        ;;
+        ;; tl;dr: the former uses more specialized comparison/sort funcs, but
+        ;; the other does not. furthermore, excluding both (safety 0) and type
+        ;; declarations generates more code (for type checks) but also uses the
+        ;; specialized funcs, which explains why that's faster than
+        ;; types+safety0. TIL.
         (ys (sort (second both-ids) #'<)))
     (loop for x fixnum in xs for y fixnum in ys
           sum (abs (- x y)) fixnum)))
