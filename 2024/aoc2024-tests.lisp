@@ -22,13 +22,13 @@
   `(progn
      ,@(loop for (day expect1 expect2) in test-cases
              collect `(test ,(aoc2024:symb 'test- day)
-                        (time (multiple-value-bind (res1 res2) (,(aoc2024:symb 'day- (format nil "~2,'0d" day)))
-                                (is (= res1 ,expect1))
-                                (is (= res2 ,expect2))))))))
+                            (time (multiple-value-bind (res1 res2) (,(aoc2024:symb 'day- (format nil "~2,'0d" day)))
+                                    (is (= res1 ,expect1))
+                                    (is (= res2 ,expect2))))))))
 
 (make-aoc-tests ((1 2264607 19457120)
                  (2 359 418)
-                 ;(3 0 0)
+                 (3 188192787 113965544)
                  ;(4 0 0)
                  ;(5 0 0)
                  ;(6 0 0)
