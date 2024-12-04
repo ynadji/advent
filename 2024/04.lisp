@@ -12,8 +12,8 @@ MAMMMXMMMM
 MXMXAXMASX")
 
 (defun count-xmas-samx (string)
-  (+ (length (cl-ppcre:all-matches-as-strings "XMAS" string))
-     (length (cl-ppcre:all-matches-as-strings "SAMX" string))))
+  (+ (cl-ppcre:count-matches "XMAS" string)
+     (cl-ppcre:count-matches "SAMX" string)))
 
 (defun get-diagonals (seqs &optional (n 1))
   (if (null (ax:lastcar seqs))
