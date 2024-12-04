@@ -41,11 +41,6 @@ MXMXAXMASX")
         (setf (aref grid i j) x)))
     grid))
 
-(defun get-cross (grid i j)
-  (values (aref grid i j)
-          (loop for (i . j) in (2d-neighbors grid (cons i j) :wanted-directions *inter-cardinals*)
-                collect (aref grid i j))))
-
 (defun x-mas (grid i j)
   (and (eq #\A (aref grid i j))
        (let ((cross (loop for (i . j) in (2d-neighbors grid (cons i j) :wanted-directions *inter-cardinals*)
