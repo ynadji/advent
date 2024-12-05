@@ -52,16 +52,14 @@
     (values ht updates)))
 
 (defun day-05-part-1 (input-file)
-  (multiple-value-bind (ht updates) (parse-05 input-file)
-    (let ((*ht* ht))
-      (loop for update in updates when (sorted? update) sum (middle update)))))
+  (multiple-value-bind (*ht* updates) (parse-05 input-file)
+    (loop for update in updates when (sorted? update) sum (middle update))))
 
 (defun day-05-part-2 (input-file)
-  (multiple-value-bind (ht updates) (parse-05 input-file)
-    (let ((*ht* ht))
-      (let ((ooo-updates (loop for update in updates unless (sorted? update) collect update)))
-        (loop for update in ooo-updates for sorted-update = (sort (copy-list update) #'sorter)
-              sum (middle sorted-update))))))
+  (multiple-value-bind (*ht* updates) (parse-05 input-file)
+    (loop for update in updates
+          unless (sorted? update)
+            sum (middle (sort update #'sorter)))))
 
 (defun day-05 ()
   (let ((f (fetch-day-input-file 2024 5)))
