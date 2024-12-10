@@ -11,8 +11,10 @@
 #.........
 ......#...")
 
+(declaim (optimize (speed 3)))
 
 (defun guard-duty (grid start)
+  (declare (type (simple-array standard-char (* *)) grid))
   (let ((visited (make-hash-table :test #'equal))
         (direction :north))
     (loop with pos = start while pos
@@ -34,6 +36,7 @@
 
 (defun day-06-part-2 (input-file)
   (multiple-value-bind (grid start) (read-grid input-file #\^)
+    (declare (type (simple-array standard-char (* *)) grid))
     (loop for (i . j) in (guard-duty grid start)
           for original-char = (aref grid i j)
           do (when (char= original-char #\.)
