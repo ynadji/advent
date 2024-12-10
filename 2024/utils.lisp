@@ -182,6 +182,9 @@ a unique identifier that maps X to a unique, increasing integer."
 (defun opposite-direction (direction)
   (nth (mod (+ 4 (position direction *8-winds*)) 8) *8-winds*))
 
+(defun 90-clockwise-direction (direction)
+  (nth (mod (+ 2 (position direction *8-winds*)) 8) *8-winds*))
+
 (defstruct 2d-index (x 0 :type fixnum) (y 0 :type fixnum))
 
 ;; seems much slower than POS+ given the output from DISASSEMBLE
