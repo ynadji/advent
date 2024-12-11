@@ -3,10 +3,12 @@
 ;; 00
 (defparameter test-input "2333133121414131402")
 
+(defstruct file id offset size)
+
 (defun parse-disk-map (s)
   (let ((s (str:trim s)))
-   (make-array (length s) :element-type 'fixnum
-                          :initial-contents (loop for x across s collect (- (char-code x) 48)))))
+    (make-array (length s) :element-type 'fixnum
+                           :initial-contents (loop for x across s collect (- (char-code x) 48)))))
 
 (defun show-disk-map (disk-map)
   (loop for i from 0 for x across disk-map
@@ -55,88 +57,43 @@
   (loop for file in (defrag (parse-disk-map (uiop:read-file-string input-file)))
                sum (loop repeat (file-size file) for i from (file-offset file) sum (* i (file-id file)))))
 
-(defun make-empty-map (disk-map)
-  (let ((empty-map (make-hash-table))
-        (offset 0))
-    (loop with i = 0
-          while (< i (1- (array-dimension disk-map 0)))
-          do (incf offset (aref disk-map i))
-             (incf i)
-             (loop for size from 1 upto (aref disk-map i)
-                   do (push offset (gethash size empty-map)))
-             (incf offset (aref disk-map i))
-             (incf i)
-          finally
-             (loop for k being the hash-key of empty-map
-                   do (setf (gethash k empty-map) (reverse (gethash k empty-map))))
-             (return empty-map))))
+(defun parse-disk-map-2 (s)
+  (let* ((s (str:trim s))
+         (disk-map (make-array (length s)))
+         (offset 0))
+    (loop for i from 0 for c across s
+          for x = (digit-char-p c)
+          if (zerop (mod i 2))
+            do (setf (aref disk-map i) (make-file :id (/ i 2) :offset offset :size x))
+          else
+            do (setf (aref disk-map i) (make-file :id -1 :offset offset :size x))
+          do (incf offset x))
+    disk-map))
 
-(defstruct file offset id size)
+(defun show-disk-map-2 (disk-map)
+  (loop for file across disk-map
+        do (if (minusp (file-id file))
+               (loop repeat (file-size file) do (princ #\.))
+               (loop repeat (file-size file) do (princ (file-id file)))))
+  (terpri))
 
+;; possible on one pass?
 (defun file-defrag (disk-map)
-  (let ((empty-map (make-empty-map disk-map))
-        (i 0) (j (1- (array-dimension disk-map 0)))
-        (offset 0)
-        used-free
-        moved
-        defragged)
-    (loop
-      do (format t "(~a, ~a) ~a~%" i j offset)
-      do (format t "~a~%" disk-map)
-      do (format t "~a~%~%" defragged)
-      while (< i (array-dimension disk-map 0))
-      when (free-space? i) ; can i fit the right-most file in the left-most free space?
-        do (let ((free-spaces (gethash (aref disk-map j) empty-map)))
-             (ax:if-let ((free-space (and (not (member offset used-free))
-                                          (find offset free-spaces))))
-               (progn (push (make-file :offset offset :id (/ j 2) :size (aref disk-map j)) defragged)
-                      (incf offset (aref disk-map j))
-                      (decf (aref disk-map i) (aref disk-map j)) ; decrement available free space
-                      (setf (aref disk-map j) 0)
-                      (decf j 2)
-                      (when (> 0 (aref disk-map i))
-                        (loop for size from 1 upto (aref disk-map i)
-                              do (push offset (gethash size empty-map)))))
-               (progn (decf j 2)
-                      (incf offset (aref disk-map i))
-                      (setf (aref disk-map i) 0)
-                      (incf i))))
-      when (file? i)
-        do (push (make-file :offset offset :id (/ i 2) :size (aref disk-map i)) defragged)
-           (incf offset (aref disk-map i))
-           (decf (aref disk-map i) offset)
-           (incf i)                     ; points to 0s now
-      )))
+  (loop for j from (1- (array-dimension disk-map 0)) downto 0 by 2
+        for used = (aref disk-map j) do
+          (loop for i from 1 below (array-dimension disk-map 0) by 2
+                for free = (aref disk-map i)
+                if (and (>= (file-size free) (file-size used))
+                        (<= (file-offset free) (file-offset used)))
+                  do (setf (file-offset used) (file-offset free))
+                     (incf (file-offset free) (file-size used))
+                     (decf (file-size free) (file-size used))))
+  disk-map)
 
-(defun file-defrag2 (disk-map)
-  (let ((empty-map (make-empty-map disk-map))
-        (i 0) (j (1- (array-dimension disk-map 0)))
-        (offset 0)
-        used-free
-        defragged)
-    (loop
-      do (format t "(~a, ~a) ~a~%" i j offset)
-      do (format t "~a~%" disk-map)
-      do (format t "~a~%~%" defragged)
-      while (not (zerop j))
-      do (let ((free-spaces (gethash (aref disk-map j) empty-map)))
-           (ax:if-let ((free-space (loop for x in free-spaces when (not (member x used-free)) return x)))
-             (progn (push (make-file :offset free-space :id (/ j 2) :size (aref disk-map j)) defragged)
-                    (push free-space used-free)
-                    
-                    (incf offset (aref disk-map j))
-                    (decf (aref disk-map i) (aref disk-map j)) ; decrement available free space
-                    (setf (aref disk-map j) 0)
-                    (decf j 2)
-                    (when (> 0 (aref disk-map i))
-                      (loop for size from 1 upto (aref disk-map i)
-                            do (push offset (gethash size empty-map)))))
-             (progn (decf j 2)
-                    (incf offset (aref disk-map i))
-                    (setf (aref disk-map i) 0)
-                    (incf i)))))))
-
-(defun day-09-part-2 (input-file) (progn input-file -1))
+(defun day-09-part-2 (input-file)
+  (loop for file across (file-defrag (parse-disk-map-2 (uiop:read-file-string input-file)))
+        unless (minusp (file-id file))
+          sum (loop repeat (file-size file) for i from (file-offset file) sum (* i (file-id file)))))
 
 (defun day-09 ()
   (let ((f (fetch-day-input-file 2024 9)))
