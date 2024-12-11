@@ -14,19 +14,6 @@
 01329801
 10456732")
 
-(defun read-trails (input-file)
-  (let* ((lines (uiop:read-file-lines input-file))
-         (rows (length lines))
-         (cols (length (first lines)))
-         (grid (make-array (list rows cols) :element-type 'fixnum))
-         trailheads)
-    (loop for row in lines for i from 0 do
-      (loop for x across row for j from 0 do
-        (setf (aref grid i j) (- (char-code x) 48))
-        (when (= 0 (aref grid i j))
-          (push (cons i j) trailheads))))
-    (values grid trailheads)))
-
 (defun hike% (grid pos)
   (if (= 9 (aref grid (car pos) (cdr pos)))
       (list pos)
@@ -43,6 +30,6 @@
 
 (defun day-10 ()
   (let ((f (fetch-day-input-file 2024 10)))
-    (multiple-value-bind (grid trailheads) (read-trails f)
+    (multiple-value-bind (grid trailheads) (read-grid f :element-type 'fixnum :starts? (lambda (x) (= x 0)))
       (values (length (hike grid trailheads 1))
               (length (hike grid trailheads 2))))))

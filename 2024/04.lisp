@@ -31,19 +31,6 @@ MXMXAXMASX")
        (apply #'+ (mapcar #'count-xmas-samx (mapcar #'chars-to-string (get-diagonals (mapcar #'string-to-chars lines)))))
        (apply #'+ (mapcar #'count-xmas-samx (mapcar #'chars-to-string (get-diagonals (mapcar #'string-to-chars (rotate-90-clockwise lines)))))))))
 
-(defun read-grid (input-file &optional (start-char nil))
-  (let* ((lines (uiop:read-file-lines input-file))
-         (rows (length lines))
-         (cols (length (first lines)))
-         (grid (make-array (list rows cols) :element-type 'standard-char))
-         (start nil))
-    (loop for row in lines for i from 0 do
-      (loop for x across row for j from 0 do
-        (setf (aref grid i j) x)
-        (when (and start-char (char= x start-char))
-          (setf start (cons i j)))))
-    (values grid start)))
-
 (defun x-mas (grid i j)
   (and (eq #\A (aref grid i j))
        (let ((cross (loop for (i . j) in (2d-neighbors grid (cons i j) :wanted-directions *inter-cardinals*)

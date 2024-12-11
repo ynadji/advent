@@ -31,17 +31,17 @@
     (remove-duplicates (mapcar #'cdr (ax:hash-table-keys visited)) :test #'equal)))
 
 (defun day-06-part-1 (input-file)
-  (multiple-value-bind (grid start) (read-grid input-file #\^)
-    (length (guard-duty grid start))))
+  (multiple-value-bind (grid starts) (read-grid input-file :starts? (lambda (c) (char= c #\^)))
+    (length (guard-duty grid (first starts)))))
 
 (defun day-06-part-2 (input-file)
-  (multiple-value-bind (grid start) (read-grid input-file #\^)
+  (multiple-value-bind (grid starts) (read-grid input-file :starts? (lambda (c) (char= c #\^)))
     (declare (type (simple-array standard-char (* *)) grid))
-    (loop for (i . j) in (guard-duty grid start)
+    (loop for (i . j) in (guard-duty grid (first starts))
           for original-char = (aref grid i j)
           do (when (char= original-char #\.)
                (setf (aref grid i j) #\#))
-          count (eq :cycle (guard-duty grid start))
+          count (eq :cycle (guard-duty grid (first starts)))
           do (setf (aref grid i j) original-char))))
 
 (defun day-06 ()

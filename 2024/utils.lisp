@@ -240,3 +240,20 @@ a unique identifier that maps X to a unique, increasing integer."
 (defun num-digits (x)
   (declare (type fixnum x))
   (1+ (floor (log x 10))))
+
+(defun read-grid (input-file &key (element-type 'standard-char) (starts? (lambda (x) (declare (ignorable x)) nil)))
+  (let* ((lines (uiop:read-file-lines input-file))
+         (rows (length lines))
+         (cols (length (first lines)))
+         (grid (make-array (list rows cols) :element-type element-type))
+         starts)
+    (loop for row in lines for i from 0 do
+      (loop for c across row for j from 0
+            for x = (ecase element-type
+                      (fixnum (digit-char-p c))
+                      (standard-char c))
+            do
+               (setf (aref grid i j) x)
+               (when (funcall starts? x)
+                 (push (cons i j) starts))))
+    (values grid starts)))
