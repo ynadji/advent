@@ -27,19 +27,22 @@
           (push (cons i j) trailheads))))
     (values grid trailheads)))
 
-(defun hike (grid pos)
+(defun hike% (grid pos)
   (if (= 9 (aref grid (car pos) (cdr pos)))
-      pos
+      (list pos)
       (let ((x (aref grid (car pos) (cdr pos))))
         (loop for npos in (2d-neighbors grid pos)
               when (= (1+ x) (aref grid (car npos) (cdr npos)))
-                collect (cons pos (hike grid npos))))))
+                nconc (hike% grid npos)))))
 
-(defun day-10-part-1 (input-file) (progn input-file -1))
-
-(defun day-10-part-2 (input-file) (progn input-file -1))
+(defun hike (grid trailheads part)
+  (loop for trailhead in trailheads
+        nconc (if (= 1 part)
+                  (remove-duplicates (hike% grid trailhead) :test #'equal)
+                  (hike% grid trailhead))))
 
 (defun day-10 ()
   (let ((f (fetch-day-input-file 2024 10)))
-    (values (day-10-part-1 f)
-            (day-10-part-2 f))))
+    (multiple-value-bind (grid trailheads) (read-trails f)
+      (values (length (hike grid trailheads 1))
+              (length (hike grid trailheads 2))))))
