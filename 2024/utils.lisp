@@ -237,6 +237,12 @@ a unique identifier that maps X to a unique, increasing integer."
 
 ;; TODO: integrate Prolog somehow?
 ;; what if i just embedded swipl? https://www.swi-prolog.org/pldoc/man?section=embedded
+
+;; this breaks for numbers as low as 9999999
+;; AOC2024> (num-digits 999999)
+;; 6
+;; AOC2024> (num-digits 9999999)
+;; 8
 (defun num-digits (x)
   (declare (type fixnum x))
   (1+ (floor (log x 10))))
