@@ -185,6 +185,15 @@ a unique identifier that maps X to a unique, increasing integer."
 (defun 90-clockwise-direction (direction)
   (nth (mod (+ 2 (position direction *8-winds*)) 8) *8-winds*))
 
+(defun make-inter-cardinal (cardinal-1 cardinal-2)
+  (ecase cardinal-1
+    ((:north :south) (ecase cardinal-2
+                       ((:north :south) nil)
+                       ((:east :west) (intern (format nil "~a-~a" cardinal-1 cardinal-2) 'keyword))))
+    ((:east :west) (ecase cardinal-2
+                     ((:north :south) (make-inter-cardinal cardinal-2 cardinal-1))
+                     ((:east :west) nil)))))
+
 (defstruct 2d-index (x 0 :type fixnum) (y 0 :type fixnum))
 
 ;; seems much slower than POS+ given the output from DISASSEMBLE
