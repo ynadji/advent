@@ -247,6 +247,8 @@ a unique identifier that maps X to a unique, increasing integer."
   (declare (type fixnum x))
   (1+ (floor (log x 10))))
 
+;; maybe starts makes more sense as just an item to do an EQL or EQUAL
+;; comparison to the item? so far it's only FIXNUMs and CHARs.
 (defun read-grid (input-file &key (element-type 'standard-char) (starts? (lambda (x) (declare (ignorable x)) nil)))
   (let* ((lines (uiop:read-file-lines input-file))
          (rows (length lines))
