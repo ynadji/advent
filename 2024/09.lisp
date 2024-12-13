@@ -3,7 +3,10 @@
 ;; 00
 (defparameter test-input "2333133121414131402")
 
-(defstruct file id offset size)
+(defstruct file
+  (id -1 :type fixnum)
+  (offset 0 :type fixnum)
+  (size 0 :type fixnum))
 
 (defun parse-disk-map (s)
   (let ((s (str:trim s)))
@@ -79,6 +82,8 @@
 
 ;; possible on one pass?
 (defun file-defrag (disk-map)
+  (declare (optimize (speed 3))
+           (type (simple-array file (*)) disk-map))
   (loop for j from (1- (array-dimension disk-map 0)) downto 0 by 2
         for used = (aref disk-map j) do
           (loop for i from 1 below (array-dimension disk-map 0) by 2
