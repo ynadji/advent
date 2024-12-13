@@ -15,13 +15,16 @@
 
 (setf lparallel:*kernel* (lparallel:make-kernel 8))
 
-(defun guard-duty (grid start)
+(defun guard-duty (grid start &optional fake-block)
   (declare (type (simple-array standard-char (* *)) grid))
   (let ((direction :north)
         (visited (make-hash-table :test #'equal :size 1024)))
     (loop with pos = start while pos
           for next-pos = (safe-advance direction pos grid)
-          for next-char = (when next-pos (aref grid (car next-pos) (cdr next-pos)))
+          for next-char = (when next-pos
+                            (if (and fake-block (equal fake-block next-pos))
+                                #\#
+                                (aref grid (car next-pos) (cdr next-pos))))
           if (gethash (cons direction pos) visited)
             do (return-from guard-duty (values :cycle (cons direction pos)))
           else
@@ -39,17 +42,14 @@
 (defun day-06-part-2 (input-file)
   (multiple-value-bind (grid starts) (read-grid input-file :starts? (lambda (c) (char= c #\^)))
     (declare (type (simple-array standard-char (* *)) grid))
-    (labels ((find-cycle (pos grid)
+    (labels ((find-cycle (pos)
                (declare (type (simple-array standard-char (* *)) grid))
                (destructuring-bind (i . j) pos
                  (when (char= (aref grid i j) #\.)
-                   (setf (aref grid i j) #\#)
-                   (when (eq :cycle (guard-duty grid (first starts)))
+                   (when (eq :cycle (guard-duty grid (first starts) pos))
                      1)))))
       (let ((visited (guard-duty grid (first starts))))
-        (apply #'+ (remove nil (lparallel:pmapcar #'find-cycle
-                                                  visited
-                                                  (loop repeat (length visited) collect (ax:copy-array grid)))))))))
+        (apply #'+ (remove nil (lparallel:pmapcar #'find-cycle visited)))))))
 
 (defun day-06 ()
   (let ((f (fetch-day-input-file 2024 6)))
