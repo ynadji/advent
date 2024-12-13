@@ -264,9 +264,27 @@ a unique identifier that maps X to a unique, increasing integer."
 ;; 6
 ;; AOC2024> (num-digits 9999999)
 ;; 8
-(defun num-digits (x)
+;;
+;; manually checking in a big COND statement is faster and doesn't have the
+;; above problem, but is annoying to write. macro below does it for us.
+(defun num-digits% (x)
   (declare (type fixnum x))
   (1+ (floor (log x 10))))
+
+(eval-when (:compile-toplevel)
+  (defun make-num-digits-upto% (max-digits)
+    (append (cons 'cond
+                  (loop for n from 0 below max-digits
+                        collect `((< x ,(expt 10 (1+ n))) ,(1+ n))))
+            '((t (error "~a too large for NUM-DIGITS. Bump definition value in utils to MAKE-NUM-DIGITS-UPTO." x))))))
+
+(defmacro make-num-digits-upto (max-digits)
+  `(defun num-digits (x)
+     (declare (type fixnum x)
+              (optimize (speed 3)))
+     ,(make-num-digits-upto% max-digits)))
+
+(make-num-digits-upto 20)
 
 ;; maybe starts makes more sense as just an item to do an EQL or EQUAL
 ;; comparison to the item? so far it's only FIXNUMs and CHARs.

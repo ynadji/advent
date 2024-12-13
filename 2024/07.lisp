@@ -15,7 +15,7 @@
 
 (defun fixnum-concat (x y)
   (declare (type fixnum x y))
-  (+ (* x (expt 10 (1+ (floor (log y 10)))))
+  (+ (* x (expt 10 (num-digits y)))
      y))
 
 (defun solve-equation (test-value vals &optional (acc 0) (part 1))
