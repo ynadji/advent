@@ -179,6 +179,18 @@ a unique identifier that maps X to a unique, increasing integer."
 (defvar *8-winds-pos-delta* (interleave *cardinals-pos-delta* *inter-cardinals-pos-delta*))
 (defvar *8-winds/deltas* (mapcar #'cons *8-winds* *8-winds-pos-delta*))
 
+(defun direction->delta (direction)
+  (ax:assoc-value *8-winds/deltas* direction))
+
+(defun advance (direction pos)
+  (pos+ pos (direction->delta direction)))
+
+(defun safe-advance (direction pos array)
+  (declare (optimize (speed 3)))
+  (let ((new-pos (pos+ pos (direction->delta direction))))
+    (and (array-in-bounds-p array (car new-pos) (cdr new-pos))
+         new-pos)))
+
 (defun opposite-direction (direction)
   (nth (mod (+ 4 (position direction *8-winds*)) 8) *8-winds*))
 
