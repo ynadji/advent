@@ -304,3 +304,8 @@ a unique identifier that maps X to a unique, increasing integer."
                (when (funcall starts? x)
                  (push (cons i j) starts))))
     (values grid starts)))
+
+;; From https://github.com/bo-tato
+(defun string-to-num-list (string)
+  "Return a list of all numbers in STRING."
+  (mapcar #'parse-integer (ppcre:all-matches-as-strings "[-\\d]+" string)))
