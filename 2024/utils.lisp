@@ -121,9 +121,24 @@ a unique identifier that maps X to a unique, increasing integer."
   "Prints input from puzzles after UIOP:READ-FILE-LINES."
   (dolist (x input) (princ x) (terpri)))
 
-;; TODO: Generalize the above to be more like PRINT-MAZE from 10.lisp so parts
-;; can be printed in color. Maybe a separate PRINT-ARRAY is needed where colors
-;; can be based on (1) MEMBER of POS or (2) MEMBER of (AREF i j).
+(defun make-pos-color-alist (color positions)
+  (loop for pos in positions collect (cons pos color)))
+
+(defun print-grid (grid &key (stream t) char-color-alist pos-color-alist)
+  "Print GRID to STREAM. Use ANSI colors based on CHAR-COLOR-ALIST and
+POS-COLOR-ALIST. While CHAR-COLOR-ALIST implies it's for characters only,
+anything that is EQL inside the GRID will work (i.e., integers)."
+  (loop for i below (array-dimension grid 0) do
+    (format stream "~3,'0d " i)
+    (loop for j below (array-dimension grid 1)
+          for pos = (cons i j)
+          for c = (aref grid i j)
+          for color = (or (ax:assoc-value char-color-alist c)
+                          (ax:assoc-value pos-color-alist pos :test #'equal))
+          do (let ((cl-ansi-text:*ENABLED* color))
+               (cl-ansi-text:with-color (color :stream stream)
+                 (princ c stream))))
+    (format stream "~&")))
 
 (defun string-to-chars (string) (coerce string 'list))
 (defun chars-to-string (chars) (coerce chars 'string))
