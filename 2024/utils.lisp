@@ -225,11 +225,12 @@ anything that is EQL inside the GRID will work (i.e., integers)."
 (defun (setf paref) (new-value array pos)
   (setf (aref array (car pos) (cdr pos)) new-value))
 
-(defun peek-to-boundary (direction pos array)
+(defun peek-to-boundary (direction pos array &optional stop-chars)
   (loop for (c new-pos) = (multiple-value-list (peek direction pos array))
         while c
         collect c into chars collect new-pos into positions
         do (setf pos new-pos)
+        while (or (null stop-chars) (not (member c stop-chars)))
         finally (return (values chars positions))))
 
 (defun opposite-direction (direction)
