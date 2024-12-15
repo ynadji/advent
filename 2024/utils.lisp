@@ -206,6 +206,25 @@ anything that is EQL inside the GRID will work (i.e., integers)."
     (and (array-in-bounds-p array (car new-pos) (cdr new-pos))
          new-pos)))
 
+(defun peek (direction pos array)
+  (let ((new-pos (safe-advance direction pos array)))
+    (when new-pos
+      (values (aref array (car new-pos) (cdr new-pos))
+              new-pos))))
+
+(defun paref (array pos)
+  (aref array (car pos) (cdr pos)))
+
+(defun (setf paref) (new-value array pos)
+  (setf (aref array (car pos) (cdr pos)) new-value))
+
+(defun peek-to-boundary (direction pos array)
+  (loop for (c new-pos) = (multiple-value-list (peek direction pos array))
+        while c
+        collect c into chars collect new-pos into positions
+        do (setf pos new-pos)
+        finally (return (values chars positions))))
+
 (defun opposite-direction (direction)
   (nth (mod (+ 4 (position direction *8-winds*)) 8) *8-winds*))
 
@@ -319,6 +338,10 @@ anything that is EQL inside the GRID will work (i.e., integers)."
                (when (funcall starts? x)
                  (push (cons i j) starts))))
     (values grid starts)))
+
+(defun parse-grid (string &key (element-type 'standard-char) (starts? (lambda (x) (declare (ignorable x)) nil)))
+  (with-input (input-file string)
+    (read-grid input-file :element-type element-type :starts? starts?)))
 
 ;; From https://github.com/bo-tato
 (defun string-to-num-list (string)
