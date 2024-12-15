@@ -128,8 +128,15 @@ a unique identifier that maps X to a unique, increasing integer."
   "Print GRID to STREAM. Use ANSI colors based on CHAR-COLOR-ALIST and
 POS-COLOR-ALIST. While CHAR-COLOR-ALIST implies it's for characters only,
 anything that is EQL inside the GRID will work (i.e., integers)."
+  (labels ((index-cols-as-row (max-j start end)
+             (str:join "" (mapcar (lambda (s) (subseq s start end))
+                                  (loop for j below max-j collect (format nil "~3,' d" j))))))
+   (let ((max-j (array-dimension grid 1)))
+     (format stream "    ~a~%" (index-cols-as-row max-j 0 1))
+     (format stream "    ~a~%" (index-cols-as-row max-j 1 2))
+     (format stream "    ~a~%" (index-cols-as-row max-j 2 3))))
   (loop for i below (array-dimension grid 0) do
-    (format stream "~3,'0d " i)
+    (format stream "~3,' d " i)
     (loop for j below (array-dimension grid 1)
           for pos = (cons i j)
           for c = (aref grid i j)
