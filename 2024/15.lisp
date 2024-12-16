@@ -64,6 +64,16 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^")
 
 <vv<<^^")
 
+(defparameter test-input-5 "##############
+##......##..##
+##..........##
+##...[][]...##
+##....[]....##
+##.....@....##
+##############
+
+^^^^")
+
 (defun char-to-direction (c)
   (ecase c (#\< :west) (#\v :south) (#\> :east) (#\^ :north)))
 
@@ -83,17 +93,16 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^")
             (parse-grid (widen-grid maze) :starts? (lambda (c) (char= c #\@))))
       (values grid starts (str:replace-all (format nil "~%") "" moves)))))
 
-(defun dynamic-rotatef (positions)
-  (cons 'rotatef (mapcar (lambda (pos) `(paref grid (quote ,pos))) positions)))
+(defun robot-push (grid positions)
+  (let ((chars (mapcar (lambda (pos) (paref grid pos)) positions)))
+    (loop for pos in positions for c in (cons (ax:lastcar chars) (butlast chars))
+          do (setf (paref grid pos) c))))
 
-(defvar grid) ;; to ensure GRID is bound for the EVAL (lol. lmao.)
 (defun robot-moves (grid moves robot-pos &optional write-file?)
   (labels ((pushable? (positions)
-             (let* ((chars (mapcar (lambda (pos) (paref grid pos)) positions))
-                    (idx (position-if (lambda (c) (member c '(#\. #\#))) chars)))
-               (when idx
-                 (and (char= (nth idx chars) #\.)
-                      idx)))))
+             (loop for pos in positions for idx from 0
+                   when (char= (paref grid pos) #\.)
+                     return idx)))
     (loop for m across moves for direction = (char-to-direction m)
           for (next-chars next-positions) = (multiple-value-list (peek-to-boundary direction robot-pos grid '(#\# #\.)))
           for num-instruction from 0
@@ -106,7 +115,7 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^")
                 (setf robot-pos (first next-positions)))
                (#\#)
                (#\O (ax:when-let ((idx (pushable? next-positions)))
-                      (eval (dynamic-rotatef (reverse (first (get-all-box-columns grid direction robot-pos)))))
+                      (robot-push grid (first (get-all-box-columns grid direction robot-pos)))
                       (setf robot-pos (first next-positions))))
                ((#\[ #\])
                 (if (member direction '(:north :south))
@@ -114,11 +123,10 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^")
                            (all-idxes (mapcar #'pushable? all-next-positions)))
                       (when (every #'identity all-idxes)
                         (loop for all-posses in all-next-positions for idx in all-idxes
-                              for posses = (reverse (subseq all-posses 0 (1+ idx))) do
-                                (eval (dynamic-rotatef posses)))
+                              do (robot-push grid (subseq all-posses 0 (1+ idx))))
                         (setf robot-pos (first next-positions))))
                     (ax:when-let ((idx (pushable? next-positions)))
-                      (eval (dynamic-rotatef (reverse (cons robot-pos next-positions))))
+                      (robot-push grid (cons robot-pos next-positions))
                       (setf robot-pos (first next-positions)))))))))
 
 (defun get-all-box-columns% (grid direction positions &optional acc-positions)
