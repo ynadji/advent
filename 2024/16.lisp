@@ -34,6 +34,8 @@
 #S#.............#
 #################")
 
+(declaim (optimize (debug 3)))
+
 (defstruct (path (:print-function print-path))
   state (previous nil) direction (cost-so-far 0) (total-cost 0))
 
@@ -86,7 +88,9 @@
                       (let ((alt (+ (gethash state dist) new-cost)))
                         (when (< alt (gethash new-state dist))
                           (setf (gethash new-state dist) alt)
-                          (setf (gethash new-state prev) state))))
+                          (setf (gethash new-state prev) (list state)))
+                        (when (= alt (gethash new-state dist))
+                          (pushnew state (gethash new-state prev)))))
              (setf states (remove state states :test #'equal)))
     (values dist prev)))
 
@@ -96,8 +100,20 @@
       (multiple-value-bind (dist prev) (dijkstra start maze)
         (nth-value 1 (min-score-state (loop for dir in *cardinals* collect (cons dir (second starts))) dist))))))
 
+(defun walk-back (prev state start-state)
+  (if (equal state start-state)
+      (cons start-state nil)
+      (let ((next-states (gethash state prev)))
+        (loop for next-state in next-states append (cons state (walk-back prev next-state start-state))))))
+
 (defun day-16-part-2 (input-file)
-  (progn input-file -1))
+  (multiple-value-bind (maze starts) (read-grid input-file :starts? (lambda (c) (member c '(#\S #\E))))
+    (let ((start (cons :east (first starts))))
+      (multiple-value-bind (dist prev) (dijkstra start maze)
+        (multiple-value-bind (min-state min-score)
+            (min-score-state (loop for dir in *cardinals* collect (cons dir (second starts))) dist)
+          (declare (ignorable min-score))
+          (length (remove-duplicates (mapcar #'cdr (walk-back prev min-state start)) :test #'equal)))))))
 
 (defun day-16 ()
   (let ((f (fetch-day-input-file 2024 16)))
