@@ -66,16 +66,16 @@ AAAAAA")
     ;;
     ;; the .s could be corners iff they are not also 0s.
     (3 (length (2d-neighbors grid p :reachable? (ax:compose #'not reachable?)
-                                    :wanted-directions (get-inter-cardinals directions))))
+                                    :wanted-directions (apply #'directions->deltas (get-inter-cardinals directions)))))
     ;; diagonals are all possible corners if they aren't the same plant. consider:
     ;;
     ;; .0.
     ;; 000
     ;; .0.
-    (4 (- 4 (- (length (2d-neighbors grid p :reachable? reachable? :wanted-directions *8-winds*))
+    (4 (- 4 (- (length (2d-neighbors grid p :reachable? reachable? :wanted-directions *8-winds/deltas*))
                (length neighbors))))
     (2 (cond ((apply #'same-plane? p neighbors) 0) ; middle in a line
-             ((null (2d-neighbors grid p :reachable? reachable? :wanted-directions (list (apply #'make-inter-cardinal directions))))
+             ((null (2d-neighbors grid p :reachable? reachable? :wanted-directions (apply #'directions->deltas (list (apply #'make-inter-cardinal directions)))))
               ;; if the corner created by my neighbors isn't mine, i have corners on both sides
               ;; think of:
               ;;

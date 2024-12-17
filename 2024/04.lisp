@@ -33,7 +33,7 @@ MXMXAXMASX")
 
 (defun x-mas (grid i j)
   (and (eq #\A (aref grid i j))
-       (let ((cross (loop for (i . j) in (2d-neighbors grid (cons i j) :wanted-directions *inter-cardinals*)
+       (let ((cross (loop for (i . j) in (2d-neighbors grid (cons i j) :wanted-directions (apply #'directions->deltas *inter-cardinals*))
                           collect (aref grid i j))))
          (or (equal cross '(#\S #\S #\M #\M))
              (equal cross '(#\M #\M #\S #\S))
