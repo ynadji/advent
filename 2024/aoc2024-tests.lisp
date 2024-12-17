@@ -25,8 +25,8 @@
      ,@(loop for (day expect1 expect2) in test-cases
              collect `(test ,(aoc2024:symb 'test- day)
                             (time (multiple-value-bind (res1 res2) (,(aoc2024:symb 'day- (format nil "~2,'0d" day)))
-                                    (is (= res1 ,expect1))
-                                    (is (= res2 ,expect2))))))))
+                                    (is (equal res1 ,expect1))
+                                    (is (equal res2 ,expect2))))))))
 
 (make-aoc-tests ((1 2264607 19457120)
                  (2 359 418)
@@ -44,7 +44,7 @@
                  (14 218295000 6870)
                  (15 1475249 1509724)
                  (16 90440 479)
-                 ;(17 0 0)
+                 (17 "4,1,7,6,4,1,0,2,7" 0)
                  ;(18 0 0)
                  ;(19 0 0)
                  ;(20 0 0)
