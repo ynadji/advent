@@ -40,16 +40,6 @@
 #S#.............#
 #################")
 
-(declaim (optimize (debug 3)))
-
-(defstruct (path (:print-function print-path))
-  state (previous nil) direction (cost-so-far 0) (total-cost 0))
-
-(defun print-path (path &optional (stream t) depth)
-  (declare (ignore depth))
-  (format stream "#<Path to ~a cost ~,1f>"
-          (path-state path) (path-total-cost path)))
-
 (defun initialize-dist (maze)
   (let ((dist (make-hash-table :test #'equal :size (* 4 (array-total-size maze)))))
     (loop for i below (array-dimension maze 0) do
@@ -66,7 +56,6 @@
           for state-score = (gethash state dist)
           when (< state-score min-score)
             do (setf min-state state min-score state-score))
-    ;;(format t "min-state: ~a~%" min-state)
     (values min-state min-score)))
 
 (defun make-heap (dist)
@@ -87,35 +76,25 @@
          heap)
     (setf (gethash start dist) 0)
     (multiple-value-bind (heap heap-map) (make-heap dist)
-      (loop 
-            ;;for state = (min-score-state states dist)
-            for state = (cl-heap:pop-heap heap)
+      (loop for state = (cl-heap:pop-heap heap)
             while state
             for dir = (car state)
             for (new-states new-dirs) = (multiple-value-list (2d-neighbors maze (cdr state)
                                                                            :reachable? (lambda (m pos dir)
                                                                                          (declare (ignorable dir))
                                                                                          (char/= #\# (paref m pos)))))
-            do ;;(format t "state: ~a, state-heap: ~a~%" state state-heap)
-               ;;(format t "new-states: ~a, new-dirs: ~a~%" new-states new-dirs)
-               ;;(format t "new-new-states: ~a~%" (mapcar #'cons new-dirs new-states))
-               ;;(format t "new-new-states-have: ~a~%" (intersection states (mapcar #'cons new-dirs new-states) :test #'equal))
-               (loop for new-state in (mapcar #'cons new-dirs new-states)
+            do (loop for new-state in (mapcar #'cons new-dirs new-states)
                      for new-dir = (car new-state)
                      for new-cost = (cond ((eq new-dir dir) 1)
                                           ((eq (opposite-direction dir) new-dir) 2001)
                                           (t 1001))
-                     do ;;(format t "    new-state: ~a, new-dir: ~a, cost: ~a~%" new-state new-dir new-cost)
-                        (let ((alt (+ (gethash state dist) new-cost)))
+                     do (let ((alt (+ (gethash state dist) new-cost)))
                           (when (< alt (gethash new-state dist))
                             (cl-heap:decrease-key heap (gethash new-state heap-map) alt)
                             (setf (gethash new-state dist) alt)
-                            ;;(format t "modified cost of ~a to ~a~%" new-state alt)
                             (setf (gethash new-state prev) (list state)))
                           (when (= alt (gethash new-state dist))
-                            (pushnew state (gethash new-state prev)))))
-               ;(setf states (remove state states :test #'equal))
-            ))
+                            (pushnew state (gethash new-state prev)))))))
     (values dist prev heap)))
 
 (defun day-16-part-1 (input-file)
