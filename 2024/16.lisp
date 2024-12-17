@@ -1,5 +1,11 @@
 (in-package :aoc2024)
 
+(defparameter test-input-me "#####
+#..E#
+#.#.#
+#S..#
+####")
+
 (defparameter test-input-1 "###############
 #.......#....E#
 #.#.###.#.###.#
@@ -63,36 +69,57 @@
     ;;(format t "min-state: ~a~%" min-state)
     (values min-state min-score)))
 
+(defun make-heap (dist)
+  (flet ((my-key (obj &rest values)
+           (if values
+               (setf (gethash obj dist) (car values))
+               (gethash obj dist))))
+    (let ((heap (make-instance 'cl-heap:fibonacci-heap :key #'my-key))
+          (heap-map (make-hash-table :test #'equal :size (hash-table-size dist))))
+      (loop for state being the hash-key of dist
+            do (setf (gethash state heap-map)
+                     (nth-value 1 (cl-heap:add-to-heap heap state))))
+      (format t "~a~%" (gethash :heap dist))
+      (values heap heap-map))))
+
 (defun dijkstra (start maze)
   (let* ((dist (initialize-dist maze))
          (prev (make-hash-table :test #'equal))
-         (states (ax:hash-table-keys dist)))
+         (states (ax:hash-table-keys dist))
+         heap)
     (setf (gethash start dist) 0)
-    (loop while states
-          for state = (min-score-state states dist)
-          for dir = (car state)
-          for (new-states new-dirs) = (multiple-value-list (2d-neighbors maze (cdr state)
-                                                                         :reachable? (lambda (m pos dir)
-                                                                                       (declare (ignorable dir))
-                                                                                       (char/= #\# (paref m pos)))))
-          do ;;(format t "state: ~a, dir: ~a~%" state dir)
-             ;;(format t "new-states: ~a, new-dirs: ~a~%" new-states new-dirs)
-             ;;(format t "new-new-states: ~a~%" (mapcar #'cons new-dirs new-states))
-             ;;(format t "new-new-states-have: ~a~%" (intersection states (mapcar #'cons new-dirs new-states) :test #'equal))
-             (loop for new-state in (intersection states (mapcar #'cons new-dirs new-states) :test #'equal)
-                   for new-dir = (car new-state)
-                   for new-cost = (cond ((eq new-dir dir) 1)
-                                        ((eq (opposite-direction dir) new-dir) 2001)
-                                        (t 1001))
-                   do ;;(format t "    new-state: ~a, new-dir: ~a, cost: ~a~%" new-state new-dir new-cost)
-                      (let ((alt (+ (gethash state dist) new-cost)))
-                        (when (< alt (gethash new-state dist))
-                          (setf (gethash new-state dist) alt)
-                          (setf (gethash new-state prev) (list state)))
-                        (when (= alt (gethash new-state dist))
-                          (pushnew state (gethash new-state prev)))))
-             (setf states (remove state states :test #'equal)))
-    (values dist prev)))
+    (multiple-value-bind (heap heap-map) (make-heap dist)
+      (format t "peep: ~a~%" (cl-heap:peep-at-heap heap))
+      (loop 
+            ;;for state = (min-score-state states dist)
+            for state = (cl-heap:pop-heap heap)
+            while state
+            for dir = (car state)
+            for (new-states new-dirs) = (multiple-value-list (2d-neighbors maze (cdr state)
+                                                                           :reachable? (lambda (m pos dir)
+                                                                                         (declare (ignorable dir))
+                                                                                         (char/= #\# (paref m pos)))))
+            do ;;(format t "state: ~a, state-heap: ~a~%" state state-heap)
+               ;;(format t "new-states: ~a, new-dirs: ~a~%" new-states new-dirs)
+               ;;(format t "new-new-states: ~a~%" (mapcar #'cons new-dirs new-states))
+               ;;(format t "new-new-states-have: ~a~%" (intersection states (mapcar #'cons new-dirs new-states) :test #'equal))
+               (loop for new-state in (mapcar #'cons new-dirs new-states)
+                     for new-dir = (car new-state)
+                     for new-cost = (cond ((eq new-dir dir) 1)
+                                          ((eq (opposite-direction dir) new-dir) 2001)
+                                          (t 1001))
+                     do ;;(format t "    new-state: ~a, new-dir: ~a, cost: ~a~%" new-state new-dir new-cost)
+                        (let ((alt (+ (gethash state dist) new-cost)))
+                          (when (< alt (gethash new-state dist))
+                            (cl-heap:decrease-key heap (gethash new-state heap-map) alt)
+                            (setf (gethash new-state dist) alt)
+                            ;;(format t "modified cost of ~a to ~a~%" new-state alt)
+                            (setf (gethash new-state prev) (list state)))
+                          (when (= alt (gethash new-state dist))
+                            (pushnew state (gethash new-state prev)))))
+               ;(setf states (remove state states :test #'equal))
+            ))
+    (values dist prev heap)))
 
 (defun walk-back (prev state start-state)
   (if (equal state start-state)
@@ -100,9 +127,9 @@
       (let ((next-states (gethash state prev)))
         (loop for next-state in next-states append (cons state (walk-back prev next-state start-state))))))
 
-(defun day-16 ()
+(defun day-16 (input-file)
   (let ((f (fetch-day-input-file 2024 16)))
-    (multiple-value-bind (maze starts) (read-grid f :starts? (lambda (c) (member c '(#\S #\E))))
+    (multiple-value-bind (maze starts) (read-grid input-file :starts? (lambda (c) (member c '(#\S #\E))))
       (let ((start (cons :east (first starts))))
         (multiple-value-bind (dist prev) (dijkstra start maze)
           (multiple-value-bind (min-state min-score)
