@@ -72,20 +72,20 @@ Program: 0,3,5,4,3,0")
     (5 *b*)
     (6 *c*)))
 
-(defun adv (cop)
-  (let ((cop (combo cop)))
-    (setf *a* (floor (/ *a* (expt 2 cop))))))
+(defmacro Xdv (cop register)
+  `(setf ,register (floor (/ *a* (expt 2 (combo ,cop))))))
+
+(defun adv (cop) (Xdv cop *a*))
+(defun bdv (cop) (Xdv cop *b*))
+(defun cdv (cop) (Xdv cop *c*))
 
 (defun bxl (op)
   (setf *b* (logxor *b* op)))
 
 (defun bst (cop)
-  (let ((cop (combo cop)))
-    ;;(format t "setf *b* ~a~%" (mod cop 8))
-    (setf *b* (mod cop 8))))
+  (setf *b* (mod (combo cop) 8)))
 
 (defun jnz (op)
-  ;;(format t "jnz ~a, *a*: ~a~%" op *a*)
   (unless (zerop *a*)
     (setf *ip* op)))
 
@@ -94,16 +94,7 @@ Program: 0,3,5,4,3,0")
   (setf *b* (logxor *b* *c*)))
 
 (defun out (cop)
-  (let ((cop (combo cop)))
-    (push (mod cop 8) *output*)))
-
-(defun bdv (cop)
-  (let ((cop (combo cop)))
-    (setf *b* (floor (/ *a* (expt 2 cop))))))
-
-(defun cdv (cop)
-  (let ((cop (combo cop)))
-    (setf *c* (floor (/ *a* (expt 2 cop))))))
+  (push (mod (combo cop) 8) *output*))
 
 (defvar op->fun '((0 . adv) (1 . bxl) (2 . bst) (3 . jnz) (4 . bxc) (5 . out) (6 . bdv) (7 . cdv)))
 
@@ -115,7 +106,6 @@ Program: 0,3,5,4,3,0")
           for func = (ax:assoc-value op->fun (aref instructions *ip*))
           for operand = (aref instructions (1+ *ip*))
           for res = (funcall func operand)
-          ;;do (format t "~2,' d (FUNCALL ~a ~a)~%" *ip* func operand)
           unless (and (eq func 'jnz) res)
             do (incf *ip* 2))
     (format nil "~{~a~^,~}" (reverse *output*))))
