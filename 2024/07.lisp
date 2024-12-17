@@ -27,10 +27,9 @@
           (and (= part 2) (solve-equation test-value (rest vals) (fixnum-concat acc (first vals)) part)))))
 
 (defun day-07% (input-file &optional (part 1))
-  (let ((lines (uiop:read-file-lines input-file)))
-    (loop for line in lines for vals = (mapcar #'parse-integer (str:split " " (str:replace-first ":" "" line)))
-          when (solve-equation (first vals) (rest vals) 0 part)
-            sum (first vals))))
+  (loop for vals in (mapcar #'string-to-num-list (uiop:read-file-lines input-file))
+        when (solve-equation (first vals) (rest vals) 0 part)
+          sum (first vals)))
 
 (defun day-07 ()
   (let ((f (fetch-day-input-file 2024 7)))
