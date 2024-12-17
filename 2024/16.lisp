@@ -70,6 +70,10 @@
                      (nth-value 1 (cl-heap:add-to-heap heap state))))
       (values heap heap-map))))
 
+(defun 16-reachable? (m pos dir)
+  (declare (ignorable dir))
+  (char/= #\# (paref m pos)))
+
 (defun dijkstra (start maze)
   (let* ((dist (initialize-dist maze))
          (prev (make-hash-table :test #'equal))
@@ -80,9 +84,7 @@
             while state
             for dir = (car state)
             for (new-states new-dirs) = (multiple-value-list (2d-neighbors maze (cdr state)
-                                                                           :reachable? (lambda (m pos dir)
-                                                                                         (declare (ignorable dir))
-                                                                                         (char/= #\# (paref m pos)))))
+                                                                           :reachable? #'16-reachable?))
             do (loop for new-state in (mapcar #'cons new-dirs new-states)
                      for new-dir = (car new-state)
                      for new-cost = (cond ((eq new-dir dir) 1)
