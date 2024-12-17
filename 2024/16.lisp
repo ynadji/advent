@@ -50,7 +50,7 @@
       (loop for j below (array-dimension maze 1) do
         (loop for dir in *cardinals* do
           (unless (char= #\# (aref maze i j))
-           (setf (gethash (cons dir (cons i j)) dist) most-positive-fixnum)))))
+            (setf (gethash (cons dir (cons i j)) dist) most-positive-fixnum)))))
     dist))
 
 (defun min-score-state (states dist)
@@ -94,28 +94,18 @@
              (setf states (remove state states :test #'equal)))
     (values dist prev)))
 
-(defun day-16-part-1 (input-file)
-  (multiple-value-bind (maze starts) (read-grid input-file :starts? (lambda (c) (member c '(#\S #\E))))
-    (let ((start (cons :east (first starts))))
-      (multiple-value-bind (dist prev) (dijkstra start maze)
-        (nth-value 1 (min-score-state (loop for dir in *cardinals* collect (cons dir (second starts))) dist))))))
-
 (defun walk-back (prev state start-state)
   (if (equal state start-state)
       (cons start-state nil)
       (let ((next-states (gethash state prev)))
         (loop for next-state in next-states append (cons state (walk-back prev next-state start-state))))))
 
-(defun day-16-part-2 (input-file)
-  (multiple-value-bind (maze starts) (read-grid input-file :starts? (lambda (c) (member c '(#\S #\E))))
-    (let ((start (cons :east (first starts))))
-      (multiple-value-bind (dist prev) (dijkstra start maze)
-        (multiple-value-bind (min-state min-score)
-            (min-score-state (loop for dir in *cardinals* collect (cons dir (second starts))) dist)
-          (declare (ignorable min-score))
-          (length (remove-duplicates (mapcar #'cdr (walk-back prev min-state start)) :test #'equal)))))))
-
 (defun day-16 ()
   (let ((f (fetch-day-input-file 2024 16)))
-    (values (day-16-part-1 f)
-            (day-16-part-2 f))))
+    (multiple-value-bind (maze starts) (read-grid f :starts? (lambda (c) (member c '(#\S #\E))))
+      (let ((start (cons :east (first starts))))
+        (multiple-value-bind (dist prev) (dijkstra start maze)
+          (multiple-value-bind (min-state min-score)
+              (min-score-state (loop for dir in *cardinals* collect (cons dir (second starts))) dist)
+            (values min-score
+                    (length (remove-duplicates (mapcar #'cdr (walk-back prev min-state start)) :test #'equal)))))))))
