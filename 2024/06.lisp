@@ -11,8 +11,6 @@
 #.........
 ......#...")
 
-(declaim (optimize (speed 3)))
-
 (setf lparallel:*kernel* (lparallel:make-kernel 8))
 
 (defun dir-id (dir) (ecase dir (:north 1) (:east 2) (:south 4) (:west 8)))
@@ -26,6 +24,7 @@
   (logior x (the fixnum (dir-id direction))))
 
 (defun guard-duty (grid start &optional fake-block part2?)
+  (declare (optimize (speed 3)))
   (declare (type (simple-array standard-char (* *)) grid))
   (let ((direction :north)
         (visited (make-array (array-dimensions grid) :element-type 'fixnum :initial-element 0)))
@@ -51,8 +50,6 @@
                                               unless (zerop (aref visited i j))
                                                 collect (cons i j)))
                            :test #'equal))))
-
-;; write guard-duty-fast here
 
 (defun day-06-part-1 (input-file)
   (multiple-value-bind (grid starts) (read-grid input-file :starts? (lambda (c) (char= c #\^)))
