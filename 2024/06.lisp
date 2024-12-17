@@ -31,14 +31,13 @@
         (visited (make-array (array-dimensions grid) :element-type 'fixnum :initial-element 0)))
     (declare (type (simple-array fixnum (* *)) visited))
     (loop with pos = start while pos
-          for dirpos = (cons direction pos)
           for next-pos = (safe-advance direction pos grid)
           for next-char = (when next-pos
                             (if (and fake-block (equal fake-block next-pos))
                                 #\#
                                 (paref grid next-pos)))
           if (already-visited? (paref visited pos) direction)
-            do (return-from guard-duty (values :cycle dirpos))
+            do (return-from guard-duty :cycle)
           else
             do (ecase next-char
                  ((#\. #\^ nil)
