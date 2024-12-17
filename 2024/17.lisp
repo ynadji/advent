@@ -46,6 +46,10 @@ Program: 0,3,5,4,3,0")
 ;; output (b % 8)  # OUT 5
 ;; a = a // 1<<3   # ADV 3
 ;; }
+;;
+;; the above is just based on the last 3 bits of a. compute values that fit in
+;; reverse, << 3, do it for the next (previous) value. when you have em all you
+;; have the value you need for *a*.
 
 (defvar *a* 0)
 (defvar *b* 0)
@@ -103,9 +107,9 @@ Program: 0,3,5,4,3,0")
 
 (defvar op->fun '((0 . adv) (1 . bxl) (2 . bst) (3 . jnz) (4 . bxc) (5 . out) (6 . bdv) (7 . cdv)))
 
-(defun run-program (instructions &optional ainc)
-  (when ainc
-    (setf *a* (+ *a* (* 8 ainc))))
+(defun run-program (instructions &optional a)
+  (when a
+    (setf *a* a))
   (let ((*output* nil))
     (loop while (array-in-bounds-p instructions *ip*)
           for func = (ax:assoc-value op->fun (aref instructions *ip*))
@@ -116,26 +120,30 @@ Program: 0,3,5,4,3,0")
             do (incf *ip* 2))
     (format nil "~{~a~^,~}" (reverse *output*))))
 
-(defun day-17-part-1 (input-file &optional ainc)
-  (multiple-value-bind (a b c instructions) (read-program input-file)
-    (let ((*a* a) (*b* b) (*c* c) (*ip* 0) *output*)
-      (run-program instructions ainc))))
+(defun day-17-part-1 (input-file &optional a)
+  (multiple-value-bind (other-a b c instructions) (read-program input-file)
+    (let ((*a* (if a a other-a)) (*b* b) (*c* c) (*ip* 0) *output*)
+      (run-program instructions a))))
 
 (defun first-n-match (arr1 arr2 n)
   (loop for i from 0 below n always (= (aref arr1 i) (aref arr2 i))))
 
 (defun day-17-part-2 (input-file)
-  (let ((start 4399000320700)
-        (incs (circular! (list 32 303423 220833 32 524256))))
-   (multiple-value-bind (a b c instructions) (read-program input-file)
-     (loop for inc in incs
-           for ainc = start then (+ ainc inc)
-           for output-instructions = (instructions-as-array
-                                      (string-to-num-list
-                                       (let ((*a* a) (*b* b) (*c* c) (*ip* 0) *output*)
-                                         (run-program instructions ainc))))
-           when (equal instructions output-instructions)
-             return (format t "~a~%" ainc)))))
+  (let ((a-solve 0)
+        (n 1))
+    (multiple-value-bind (a b c instructions) (read-program input-file)
+      (declare (ignore a))
+      (loop for output-instructions = (instructions-as-array
+                                       (string-to-num-list
+                                        (let ((*a* a-solve) (*b* b) (*c* c) (*ip* 0) *output*)
+                                          (run-program instructions a-solve))))
+            if (first-n-match (reverse instructions) (reverse output-instructions) n)
+              do (when (= n (length instructions))
+                   (return-from day-17-part-2 a-solve))
+                 (setf a-solve (ash a-solve 3))
+                 (incf n)
+            else
+              do (incf a-solve)))))
 
 (defun day-17 ()
   (let ((f (fetch-day-input-file 2024 17)))
