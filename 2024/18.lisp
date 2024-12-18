@@ -49,11 +49,19 @@
                             (pushnew state (gethash new-state prev))))))
       (values dist prev heap))))
 
+(defun reset-memory (memory bytes nbytes &optional fresh?)
+  (unless fresh?
+    (loop for i below (array-total-size memory)
+          do (setf (row-major-aref memory i) #\.)))
+  (loop for n from 0 for (j i) across bytes
+        when (<= n nbytes)
+          do (setf (aref memory i j) #\#)))
+
 (defun read-bytes (input-file &optional (nbytes 12) (dimensions '(7 7)))
-  (let ((memory (make-array dimensions :element-type 'standard-char :initial-element #\.))
-        (bytes (mapcar #'string-to-num-list (uiop:read-file-lines input-file))))
-    (loop repeat nbytes
-          for (j i) in bytes do (setf (aref memory i j) #\#))
+  (let* ((memory (make-array dimensions :element-type 'standard-char :initial-element #\.))
+         (bytes* (mapcar #'string-to-num-list (uiop:read-file-lines input-file)))
+         (bytes (make-array (length bytes*) :initial-contents bytes*)))
+    (reset-memory memory bytes nbytes t)
     (values memory bytes)))
 
 (defun find-shortest-path-score (memory start end)
@@ -72,18 +80,30 @@
   (destructuring-bind (j i) ij
     (setf (aref memory i j) #\.)))
 
-;; binary search:
+(defun binary-search (memory bytes left right &optional (start (cons 0 0)) (end (cons 70 70)))
+  (flet ((no-path? (memory bytes nbytes)
+           (reset-memory memory bytes nbytes)
+           (= most-positive-fixnum (find-shortest-path-score memory start end)))
+         (middle (l r)
+           (+ l (truncate (/ (- r l) 2)))))
+    (loop for mid = (middle left right)
+          ;;do (format t "trying ~a (~a, ~a)~%" mid left right)
+          if (no-path? memory bytes mid)
+            do ;(format t "    ~a failed, setting right to ~a~%" mid mid)
+               (setf right mid)
+          else
+            do ;(format t "    ~a succeeded, setting left to ~a~%" mid mid)
+               (setf left mid)
+          when (= (1+ left) right)
+            do (return mid))))
+
+;; binary search: 439ms
 ;; reverse: ~14s
 ;; parallel:
 (defun day-18-part-2 (input-file)
-  (let ((start (cons 0 0))
-        (end (cons 70 70)))
-    (multiple-value-bind (memory bytes) (read-bytes input-file 3450 '(71 71))
-      (loop for two-bytes in (reverse bytes)
-            and prev-two-bytes = nil then two-bytes
-            when (< (find-shortest-path-score memory start end) most-positive-fixnum)
-              return (format nil "~{~a~^,~}" prev-two-bytes)
-            do (undo-byte memory two-bytes)))))
+  (multiple-value-bind (memory bytes) (read-bytes input-file 1024 '(71 71))
+    (let ((first-good (binary-search memory bytes 1025 3450)))
+      (format nil "~{~a~^,~}" (aref bytes first-good)))))
 
 
 (defun day-18 ()
