@@ -50,26 +50,41 @@
       (values dist prev heap))))
 
 (defun read-bytes (input-file &optional (nbytes 12) (dimensions '(7 7)))
-  (let ((memory (make-array dimensions :element-type 'standard-char :initial-element #\.)))
+  (let ((memory (make-array dimensions :element-type 'standard-char :initial-element #\.))
+        (bytes (mapcar #'string-to-num-list (uiop:read-file-lines input-file))))
     (loop repeat nbytes
-          for (j i) in (mapcar #'string-to-num-list (uiop:read-file-lines input-file))
-          do (setf (aref memory i j) #\#))
-    memory))
+          for (j i) in bytes do (setf (aref memory i j) #\#))
+    (values memory bytes)))
+
+(defun find-shortest-path-score (memory start end)
+  (multiple-value-bind (dist prev heap) (dijkstra2 (list (cons :east start)
+                                                         (cons :south start)) memory)
+    (declare (ignore heap))
+    (multiple-value-bind (min-state min-score)
+        (min-score-state (loop for dir in *cardinals* collect (cons dir end)) dist)
+      (values min-score min-state))))
 
 (defun day-18-part-1 (input-file &optional (nbytes 1024))
   (let ((memory (read-bytes input-file nbytes '(71 71))))
-    (multiple-value-bind (dist prev heap) (dijkstra2 (list (cons :east (cons 0 0))
-                                                           (cons :south (cons 0 0))) memory)
-      (declare (ignore heap))
-      (multiple-value-bind (min-state min-score)
-          (min-score-state (loop for dir in *cardinals* collect (cons dir (cons 70 70))) dist)
-        (values min-score min-state)))))
+    (find-shortest-path-score memory (cons 0 0) (cons 70 70))))
 
-;; so binary search would probably be faster?
+(defun undo-byte (memory ij)
+  (destructuring-bind (j i) ij
+    (setf (aref memory i j) #\.)))
+
+;; binary search:
+;; reverse: ~14s
+;; parallel:
 (defun day-18-part-2 (input-file)
-  (loop for nbytes from 2898
-        when (= most-positive-fixnum (day-18-part-1 input-file nbytes))
-          return (nth (1- nbytes) (uiop:read-file-lines input-file))))
+  (let ((start (cons 0 0))
+        (end (cons 70 70)))
+    (multiple-value-bind (memory bytes) (read-bytes input-file 3450 '(71 71))
+      (loop for two-bytes in (reverse bytes)
+            and prev-two-bytes = nil then two-bytes
+            when (< (find-shortest-path-score memory start end) most-positive-fixnum)
+              return (format nil "~{~a~^,~}" prev-two-bytes)
+            do (undo-byte memory two-bytes)))))
+
 
 (defun day-18 ()
   (let ((f (fetch-day-input-file 2024 18)))
