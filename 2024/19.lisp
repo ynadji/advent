@@ -13,6 +13,9 @@ bwurrg
 brgr
 bbrgwb")
 
+;; TODO: way slower than it all should be. try the dumbest, functional approach
+;; and just cache things. HOWEVER, no using SUBSEQ.
+
 (defun read-towel-designs (input-file)
   (let ((lines (uiop:read-file-lines input-file)))
     (values (btrie:make-trie (str:split ", " (first lines)))
