@@ -1,8 +1,58 @@
 (in-package :aoc2024)
 
-(defun day-19-part-1 (input-file) (progn input-file -1))
+;;(declaim (optimize (speed 3)))
 
-(defun day-19-part-2 (input-file) (progn input-file -1))
+(defparameter test-input "r, wr, b, g, bwu, rb, gb, br
+
+brwrr
+bggr
+gbbr
+rrbgbr
+ubwu
+bwurrg
+brgr
+bbrgwb")
+
+(defun read-towel-designs (input-file)
+  (let ((lines (uiop:read-file-lines input-file)))
+    (values (btrie:make-trie (str:split ", " (first lines)))
+            (rest (rest lines)))))
+
+(defun possible-design? (trie design)
+  (declare (type simple-string design))
+  (if (str:empty? design)
+      t
+      (loop for end from (length design) downto 1
+            for seq = (btrie:obtain-seq trie (subseq design 0 end))
+              thereis (and seq
+                           (btrie:wordp seq)
+                           (possible-design? trie (subseq design end))))))
+
+(defun day-19-part-1 (input-file)
+  (multiple-value-bind (trie designs) (read-towel-designs input-file)
+    (loop for design in designs count (possible-design? trie design))))
+
+(defvar *trie* nil)
+
+(function-cache:defcached possible-design-3? (design)
+  (declare (type simple-string design))
+  (if (str:empty? design)
+      1
+      (loop for end from 1 upto (length design)
+            for seq = (btrie:obtain-seq *trie* (subseq design 0 end))
+            
+            for res = (and seq
+                           (btrie:wordp seq)
+                           (possible-design-3? (subseq design end)))
+            when res sum res)))
+
+(defun day-19-part-2 (input-file)
+  (multiple-value-bind (trie designs) (read-towel-designs input-file)
+    (let ((*trie* trie))
+      (loop for design simple-string in designs
+            for i fixnum from 1
+            for num-ways = (possible-design-3? design)
+            when num-ways sum num-ways))))
 
 (defun day-19 ()
   (let ((f (fetch-day-input-file 2024 19)))
