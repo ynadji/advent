@@ -1,6 +1,6 @@
 (in-package :aoc2024)
 
-;;(declaim (optimize (speed 3)))
+(declaim (optimize (speed 3)))
 
 (defparameter test-input "r, wr, b, g, bwu, rb, gb, br
 
@@ -32,7 +32,8 @@ bbrgwb")
   (multiple-value-bind (trie designs) (read-towel-designs input-file)
     (loop for design in designs count (possible-design? trie design))))
 
-(defvar *trie* nil)
+;; TODO: Figure out how to pass this into LPARALLEL
+(defparameter *trie* (read-towel-designs #P "19-input.txt"))
 
 (function-cache:defcached possible-design-3? (design)
   (declare (type simple-string design))
@@ -48,11 +49,8 @@ bbrgwb")
 
 (defun day-19-part-2 (input-file)
   (multiple-value-bind (trie designs) (read-towel-designs input-file)
-    (let ((*trie* trie))
-      (loop for design simple-string in designs
-            for i fixnum from 1
-            for num-ways = (possible-design-3? design)
-            when num-ways sum num-ways))))
+    (let ((lparallel:*kernel* (lparallel:make-kernel 8)))
+      (reduce #'+ (remove nil (lparallel:pmapcar #'possible-design-3? designs))))))
 
 (defun day-19 ()
   (let ((f (fetch-day-input-file 2024 19)))
