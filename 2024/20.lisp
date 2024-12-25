@@ -21,14 +21,7 @@
 (defun add-all-dirs (pos)
   (loop for dir in *cardinals* collect (cons dir pos)))
 
-;; two-off and block in the way
-(defun two-off (maze p1 p2)
-  (or (and (char= #\# (peek :south p1 maze)) (equal (pos+ p1 '(2 . 0)) p2))
-      (and (char= #\# (peek :east p1 maze)) (equal (pos+ p1 '(0 . 2)) p2))
-      (and (char= #\# (peek :north p1 maze)) (equal (pos+ p1 '(-2 . 0)) p2))
-      (and (char= #\# (peek :west p1 maze)) (equal (pos+ p1 '(0 . -2)) p2))))
-
-(defun day-20-part-1 (input-file &optional print?)
+(defun day-20-part-1 (input-file &optional (d 2) print?)
   (multiple-value-bind (maze starts-and-ends) (read-grid input-file :starts? (lambda (c) (member c '(#\S #\E))))
     (multiple-value-bind (starts ends)
         (if (char= #\S (paref maze (first starts-and-ends)))
@@ -55,12 +48,13 @@
               (loop for i from 0 for x in path
                     sum
                     (loop for j from 0 for y in path
-                          when (and (< i j) (two-off maze x y))
-                            count (>= (- (abs (- i j)) 2) 100)
+                          when (and (< i j) (<= (manhattan-distance x y) d))
+                            count (>= (- (abs (- i j)) (manhattan-distance x y)) 100)
                           ;;collect (- (abs (- i j)) 2)
                           )))))))))
 
-(defun day-20-part-2 (input-file) (progn input-file -1))
+(defun day-20-part-2 (input-file)
+  (day-20-part-1 input-file 20))
 
 (defun day-20 ()
   (let ((f (fetch-day-input-file 2024 20)))

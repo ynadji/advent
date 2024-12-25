@@ -70,13 +70,20 @@ tnw OR pbm -> gnj")
           (setf (gethash wire states) val)))
       (values states
               (loop for line in (str:split #\Newline ops)
-                    collect (cl-ppcre:register-groups-bind ((#'symb s1 op s2 s3)) ("(\\w+) (\\w+) (\\w+) -> (\\w+)" line)
-                              (when (char= #\z (char (format nil "~a" s3) 0))
-                                (push s3 z-states))
-                              (list s1 op s2 s3)))
+                    when (string/= "" line)
+                      collect (cl-ppcre:register-groups-bind ((#'intern s1 op s2 s3)) ("(\\w+) (\\w+) (\\w+) -> (\\w+)" line)
+                                (when (char= #\z (char (format nil "~a" s3) 0))
+                                  (push s3 z-states))
+                                (list s1 op s2 s3)))
               (sort z-states #'string< :key (lambda (x) (format nil "~a" x)))))))
 
-(defparameter op->fun (list 'AND #'logand 'OR #'logior 'XOR #'logxor))
+;;(defparameter oper->fun (list 'AND #'logand 'OR #'logior 'XOR #'logxor))
+;;(print (list 'AND #'logand 'OR #'logior 'XOR #'logxor))
+;;
+;; for some reason having XOR there causes a problem when i run it from SBCL
+;; but not from SLIME? it complains:
+;; 
+(defun oper->fun (op) (case op (AND #'logand) (OR #'logior) (t #'logxor)))
 
 (defun all-z-states-computed? (states z-states)
   (loop for z in z-states always (gethash z states)))
@@ -90,12 +97,13 @@ tnw OR pbm -> gnj")
 
 (defun run-ops (states ops)
   (loop for (s1 op s2 s3) in ops
+        ;;do (format t "~a ~a ~a ~a funcall ~a~%" s1 op s2 s3 (oper->fun op))
         if (and (gethash s1 states) (gethash s2 states))
-          do (setf (gethash s3 states) (funcall (getf op->fun op)
+          do (setf (gethash s3 states) (funcall (oper->fun op)
                                                 (gethash s1 states)
                                                 (gethash s2 states)))
         else
-          when s1
+          when op
             collect (list s1 op s2 s3)))
 
 (defun day-24-part-1 (input-file)

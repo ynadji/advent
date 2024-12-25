@@ -267,6 +267,11 @@ anything that is EQL inside the GRID will work (i.e., integers)."
   (cons (the fixnum (+ (the fixnum (car p1)) (the fixnum (car p2))))
         (the fixnum (+ (the fixnum (cdr p1)) (the fixnum (cdr p2))))))
 
+(defun pos- (p1 p2)
+  (declare (optimize (speed 3) (safety 0)))
+  (cons (the fixnum (- (the fixnum (car p1)) (the fixnum (car p2))))
+        (the fixnum (- (the fixnum (cdr p1)) (the fixnum (cdr p2))))))
+
 ;; how can i make it so i can easily do pos or i,j as argument?
 ;; this will likely be a bottleneck. how can i make it faster?
 ;; i can probably define a compiler macro for this: https://www.lispworks.com/documentation/HyperSpec/Body/m_define.htm
@@ -286,8 +291,8 @@ anything that is EQL inside the GRID will work (i.e., integers)."
           for x fixnum = (car new-pos) for y fixnum = (cdr new-pos)
           when (and (array-in-bounds-p M x y)
                     (and (funcall reachable? M new-pos direction)))
-          do (push new-pos valid-indices)
-             (push direction valid-directions))
+            do (push new-pos valid-indices)
+               (push direction valid-directions))
     (values valid-indices
             valid-directions)))
 
@@ -359,3 +364,12 @@ anything that is EQL inside the GRID will work (i.e., integers)."
 
 (defun function-size-in-bytes (fun)
   (reduce #'+ (sb-disassem::get-fun-segments fun) :key #'sb-disassem::seg-length))
+
+(defun frequencies (list)
+  (let ((ht (make-hash-table)))
+    (loop for x in list do (incf (gethash x ht 0)))
+    (ax:hash-table-alist ht)))
+
+(defun manhattan-distance (p1 p2)
+  (destructuring-bind (x . y) (pos- p1 p2)
+    (+ (abs x) (abs y))))
