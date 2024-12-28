@@ -61,6 +61,28 @@ hwm AND bqk -> z03
 tgd XOR rvg -> z12
 tnw OR pbm -> gnj")
 
+(defun read-initial-numbers (input-file)
+  (let ((x 0) (y 0))
+   (destructuring-bind (state-string ops) (str:split (format nil "~%~%") (uiop:read-file-string input-file))
+     (declare (ignore ops))
+     (loop for line in (str:split #\Newline state-string) do
+       (cl-ppcre:register-groups-bind (prefix (#'parse-integer bit-index) (#'parse-integer val)) ("(x|y)(\\d+): (\\d)" line)
+         ;;(format t "~a~a ~a~%" prefix bit-index val)
+         (if (string= prefix "x")
+             (incf x (* val (expt 2 bit-index)))
+             (incf y (* val (expt 2 bit-index))))))
+     (values (format nil "~b" (+ x y))
+             x y (+ x y)))))
+
+(defun incorrect-bits (correct &optional (current (format nil "~b" 42049478636360)) (stop-at-first? t))
+  (format t "~a~%" correct)
+  (format t "~a~%" current)
+  (loop for x across (reverse correct) for y across (reverse current) for i from 0
+        unless (char= x y)
+          do (format t "z~2,'0d differs. had ~a wanted ~a~%" i y x)
+             (when stop-at-first?
+               (return-from incorrect-bits (intern (format nil "z~2,'0d" i))))))
+
 (defun read-gates (input-file)
   (let ((states (make-hash-table))
         z-states)
@@ -95,8 +117,28 @@ tnw OR pbm -> gnj")
           while val
           sum (* val (expt 2 n)))))
 
+(defparameter *swaps* '((|gws| . |nnt|)
+                        (|z33| . |hgj|)
+                        ;;(|z19| . |cph|)
+                        ;;(|z13| . |tqs|)
+                        ))
+
+(defun swap (sym)
+  (let ((new-sym sym))
+    (loop for (x . y) in *swaps*
+          when (eq sym x)
+            do (setf new-sym y)
+          when (eq sym y)
+            do (setf new-sym x))
+    (unless (eq sym new-sym)
+      ;;(format t "replacing ~a with ~a~%" sym new-sym)
+      )
+    new-sym))
+
 (defun run-ops (states ops)
-  (loop for (s1 op s2 s3) in ops
+  (loop for (s1 op s2 s3-orig) in ops
+        for s3 = (swap s3-orig)
+        ;;for s3 = s3-orig
         ;;do (format t "~a ~a ~a ~a funcall ~a~%" s1 op s2 s3 (oper->fun op))
         if (and (gethash s1 states) (gethash s2 states))
           do (setf (gethash s3 states) (funcall (oper->fun op)
@@ -115,6 +157,25 @@ tnw OR pbm -> gnj")
             while remaining-ops
             finally
                (return (combine-zs states z-states))))))
+
+(defun test-manual-numbers (input-file &optional (x (random (expt 2 45))) (y (random (expt 2 45))))
+  (multiple-value-bind (states ops z-states) (read-gates input-file)
+    (let ((correct (format nil "~46,'0b" (+ x y))))
+      (loop for i from 0
+            for x across (reverse (format nil "~46,'0b" x))
+            for y across (reverse (format nil "~46,'0b" y))
+            for x-symb = (intern (format nil "x~2,'0d" i))
+            for y-symb = (intern (format nil "y~2,'0d" i))
+            do ;;(format t "setting ~a to ~a and ~a to ~a~%" x-symb x y-symb y)
+               (setf (gethash x-symb states) (digit-char-p x)
+                     (gethash y-symb states) (digit-char-p y)))
+      (let ((remaining-ops ops))
+        (loop do (setf remaining-ops (run-ops states remaining-ops))
+                 ;;do (format t "~a remaining states~%" remaining-ops)
+              while remaining-ops
+              finally
+                 (progn ;;(format t "~a: ~a~%~a: ~a~%" correct (+ x y) (format nil "~46,'0b" (combine-zs states z-states)) (combine-zs states z-states))
+                        (return (values (incorrect-bits correct (format nil "~46,'0b" (combine-zs states z-states)))))))))))
 
 (defun day-24-part-2 (input-file) (progn input-file -1))
 
