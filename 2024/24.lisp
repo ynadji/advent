@@ -119,9 +119,8 @@ tnw OR pbm -> gnj")
 
 (defparameter *swaps* '((|gws| . |nnt|)
                         (|z33| . |hgj|)
-                        ;;(|z19| . |cph|)
-                        ;;(|z13| . |tqs|)
-                        ))
+                        (|z19| . |cph|)
+                        (|z13| . |npf|)))
 
 (defun swap (sym)
   (let ((new-sym sym))
@@ -137,8 +136,8 @@ tnw OR pbm -> gnj")
 
 (defun run-ops (states ops)
   (loop for (s1 op s2 s3-orig) in ops
-        for s3 = (swap s3-orig)
-        ;;for s3 = s3-orig
+        ;;for s3 = (swap s3-orig)
+        for s3 = s3-orig
         ;;do (format t "~a ~a ~a ~a funcall ~a~%" s1 op s2 s3 (oper->fun op))
         if (and (gethash s1 states) (gethash s2 states))
           do (setf (gethash s3 states) (funcall (oper->fun op)
@@ -177,7 +176,9 @@ tnw OR pbm -> gnj")
                  (progn ;;(format t "~a: ~a~%~a: ~a~%" correct (+ x y) (format nil "~46,'0b" (combine-zs states z-states)) (combine-zs states z-states))
                         (return (values (incorrect-bits correct (format nil "~46,'0b" (combine-zs states z-states)))))))))))
 
-(defun day-24-part-2 (input-file) (progn input-file -1))
+(defun day-24-part-2 (input-file)
+  (declare (ignore input-file))
+  (str:join "," (sort (mapcar (lambda (x) (format nil "~a" x)) (ax:flatten *swaps*)) #'string<)))
 
 (defun day-24 ()
   (let ((f (fetch-day-input-file 2024 24)))
