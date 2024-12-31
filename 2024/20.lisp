@@ -16,12 +16,13 @@
 #...#...#...###
 ###############")
 
-(declaim (optimize (debug 3)))
+(declaim (optimize (speed 3)))
 
 (defun add-all-dirs (pos)
   (loop for dir in *cardinals* collect (cons dir pos)))
 
 (defun day-20-part-1 (input-file &optional (d 2) print?)
+  (declare (type fixnum d))
   (multiple-value-bind (maze starts-and-ends) (read-grid input-file :starts? (lambda (c) (member c '(#\S #\E))))
     (multiple-value-bind (starts ends)
         (if (char= #\S (paref maze (first starts-and-ends)))
@@ -45,11 +46,11 @@
               (print path))
             (let ((total-length (length path)))
               (when print? (print total-length))
-              (loop for i from 0 for x in path
+              (loop for i fixnum from 0 for x in path
                     sum
-                    (loop for j from 0 for y in path
-                          when (and (< i j) (<= (manhattan-distance x y) d))
-                            count (>= (- (abs (- i j)) (manhattan-distance x y)) 100)
+                    (loop for j fixnum from 0 for y in path
+                          when (and (< i j) (<= (the fixnum (manhattan-distance x y)) d))
+                            count (>= (- (the fixnum (abs (the fixnum (- i j)))) (the fixnum (manhattan-distance x y))) 100)
                           ;;collect (- (abs (- i j)) 2)
                           )))))))))
 
