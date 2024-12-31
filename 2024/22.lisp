@@ -5,6 +5,8 @@
 3
 2024")
 
+(declaim (optimize (speed 3)))
+
 (defun mix (secret n)
   (declare (optimize (speed 3))
            (type fixnum secret n))
@@ -23,12 +25,15 @@
   (setf secret (prune (mix secret (* 2048 secret)))))
 
 (defun evolve (secret n)
+  (declare (type fixnum secret n))
   (loop repeat n do (setf secret (evolve% secret)) finally (return secret)))
 
 (defun generate (secret n)
+  (declare (type fixnum secret n))
   (loop repeat n do (setf secret (evolve% secret)) collect (mod secret 10)))
 
 (defun deltas (secret n)
+  (declare (type fixnum secret n))
   (let ((prices (generate secret n)))
     (values (mapcar #'- prices (cons (mod secret 10) prices))
             prices)))
@@ -49,7 +54,7 @@
                 while p4
                 unless (gethash four-deltas seen)
                 do (setf (gethash four-deltas seen) t)
-                (incf (gethash four-deltas bananas 0) p4)
+                (incf (the fixnum (gethash four-deltas bananas 0)) (the fixnum p4))
                 ;(format t "adding ~a at ~a~%" four-deltas p4)
                 ))
     (cdr (first (sort (ax:hash-table-alist bananas) #'> :key #'cdr)))))

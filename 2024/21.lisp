@@ -1,6 +1,6 @@
 (in-package :aoc2024)
 
-(declaim (optimize debug))
+(declaim (optimize (speed 3)))
 
 (defparameter *init-pos-keypad* '(3 . 2))
 (defparameter *keypad* '((:7 :8 :9) (:4 :5 :6) (:1 :2 :3) (:U :0 :A)))
@@ -34,6 +34,7 @@
   (with-output-to-string (stream)
     (destructuring-bind (row-diff . col-diff)
         (pos- pos2 pos1)
+      (declare (type fixnum row-diff col-diff))
       (when (and (not (equal undef (pos+ pos1 (cons 0 col-diff))))
                  (minusp col-diff))
         (dotimes (_ (abs col-diff))
@@ -134,11 +135,11 @@
   (let ((codes (uiop:read-file-lines input-file)))
     (loop for code in codes
           for sp = (shortest-paths code 10)
-          for all-sp = (loop for partial in (cl-ppcre:all-matches-as-strings ".*?A" sp) sum (length (do-dpad partial 15)))
+          for all-sp = (the fixnum (loop for partial in (cl-ppcre:all-matches-as-strings ".*?A" sp) sum (the fixnum (length (do-dpad partial 15)))))
           ;;for all-sp = (str:concat (str:join "A" partials) "A")
           ;;do (format t "~a: ~a~%" code (shortest-paths code 25))
           ;;do (format t "(* ~a ~a)~%" (length sp) (parse-integer code :junk-allowed t))
-          sum (* all-sp (parse-integer code :junk-allowed t)))))
+          sum (the fixnum (* (the fixnum all-sp) (the fixnum (parse-integer code :junk-allowed t)))))))
 
 (defun day-21 ()
   (let ((f (fetch-day-input-file 2024 21)))
