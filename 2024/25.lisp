@@ -66,7 +66,7 @@
       (loop for key in keys sum
         (loop for lock in locks count (fits? key lock))))))
 
-(defun day-25-part-2 (input-file) (progn input-file -1))
+(defun day-25-part-2 (input-file) (progn input-file 0))
 
 (defun day-25 ()
   (let ((f (fetch-day-input-file 2024 25)))
