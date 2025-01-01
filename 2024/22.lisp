@@ -5,7 +5,7 @@
 3
 2024")
 
-(declaim (optimize (speed 3)))
+(declaim (inline mix prune evolve%))
 
 (defun mix (secret n)
   (declare (optimize (speed 3))
@@ -21,8 +21,8 @@
   (declare (optimize (speed 3))
            (type fixnum secret))
   (setf secret (prune (mix secret (the fixnum (* 64 secret)))))
-  (setf secret (prune (mix secret (the fixnum (floor (/ secret 32))))))
-  (setf secret (prune (mix secret (* 2048 secret)))))
+  (setf secret (prune (mix secret (the fixnum (floor secret 32)))))
+  (setf secret (prune (mix secret (the fixnum (* 2048 secret))))))
 
 (defun evolve (secret n)
   (declare (type fixnum secret n))
@@ -54,9 +54,7 @@
                 while p4
                 unless (gethash four-deltas seen)
                 do (setf (gethash four-deltas seen) t)
-                (incf (the fixnum (gethash four-deltas bananas 0)) (the fixnum p4))
-                ;(format t "adding ~a at ~a~%" four-deltas p4)
-                ))
+                (incf (the fixnum (gethash four-deltas bananas 0)) (the fixnum p4))))
     (cdr (first (sort (ax:hash-table-alist bananas) #'> :key #'cdr)))))
 
 (defun day-22 ()
