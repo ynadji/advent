@@ -7,6 +7,8 @@
 ;; export all of these!
 ;; maybe just use http://quickutil.org/how ?
 
+(declaim (inline manhattan-distance pos+ pos-))
+
 (defun group (list n)
   (declare (fixnum n))
   (labels ((aux (list n acc)
@@ -262,6 +264,8 @@ anything that is EQL inside the GRID will work (i.e., integers)."
   (make-2d-index :x (+ (2d-index-x p1) (2d-index-x p2))
                  :y (+ (2d-index-y p1) (2d-index-y p2))))
 
+;; TODO: try declaring these inline to see how much faster it makes
+;; it!
 (defun pos+ (p1 p2)
   (declare (optimize (speed 3) (safety 0)))
   (cons (the fixnum (+ (the fixnum (car p1)) (the fixnum (car p2))))
@@ -371,5 +375,7 @@ anything that is EQL inside the GRID will work (i.e., integers)."
     (ax:hash-table-alist ht)))
 
 (defun manhattan-distance (p1 p2)
+  (declare (optimize (speed 3)))
   (destructuring-bind (x . y) (pos- p1 p2)
-    (+ (abs x) (abs y))))
+    (declare (type fixnum x y))
+    (the fixnum (+ (the fixnum (abs x)) (the fixnum (abs y))))))
