@@ -69,5 +69,46 @@ Evaluation took:
     Fail: 0 ( 0%)
 ```
 
+## 2024
+
+Another year in Common Lisp and I think I'll just stick with that. It's been
+helpful for learning the language. First year I got all 50 stars! I managed to
+get all solutions to run in less than a second. This only is slightly cheating
+for day 24, where I solved part 2 by hand. Tests are only for my inputs.
+
+```
+~/code/advent/2024 master* 18s
+¡ make time
+sbcl --dynamic-space-size 8192 --eval '(progn (asdf:test-system :aoc2024) (quit))' 2>/dev/null | awk '/TEST/ { split($3,testday,"-") } /seconds of real time/ { printf "day %2d: %5dms\n", testday[2], $1*1000; total+=$1*1000 } END { printf "---------------\ntotal: %6dms\n", total }'
+day  1:     0ms
+day  2:     4ms
+day  3:     2ms
+day  4:     6ms
+day  5:     2ms
+day  6:   219ms
+day  7:    69ms
+day  8:     1ms
+day  9:   105ms
+day 10:     1ms
+day 11:    16ms
+day 12:    64ms
+day 13:    12ms
+day 14:   156ms
+day 15:    12ms
+day 16:   165ms
+day 17:     1ms
+day 18:   419ms
+day 19:    84ms
+day 20:   740ms
+day 21:     1ms
+day 22:   672ms
+day 23:   128ms
+day 24:     1ms
+day 25:     5ms
+
+---------------
+total:   2885ms
+```
+
 ### Helpful Links
 - https://lispcookbook.github.io/cl-cookbook/
