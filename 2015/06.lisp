@@ -1,3 +1,5 @@
+(in-package :aoc2015)
+
 (defun do-lights (lights op i1 j1 i2 j2)
   (loop for i from i1 upto i2 do
         (loop for j from j1 upto j2 do
@@ -10,10 +12,10 @@
 (defun count-lights (lights)
   (reduce #'+ (make-array 1000000 :element-type 'bit :displaced-to lights)))
 
-(defun day-6-part-1 (input-file)
+(defun day-06-part-1 (input-file)
   (let ((lights (make-array '(1000 1000) :element-type 'bit)))
     (loop for line in (uiop:read-file-lines input-file)
-          do (cl-ppcre:register-groups-bind ((#'intern op) (#'parse-integer i1 j1 i2 j2)) ("(on|off|toggle).*?(\\d+),(\\d+).*?(\\d+),(\\d+)" line)
+          do (cl-ppcre:register-groups-bind ((#'sintern op) (#'parse-integer i1 j1 i2 j2)) ("(on|off|toggle).*?(\\d+),(\\d+).*?(\\d+),(\\d+)" line)
                (do-lights lights op i1 j1 i2 j2)))
     (count-lights lights)))
 
@@ -29,9 +31,14 @@
                              (max 0 (1- (aref lights i j)))))
                 (|toggle| (incf (aref lights i j) 2))))))
 
-(defun day-6-part-2 (input-file)
+(defun day-06-part-2 (input-file)
   (let ((lights (make-array '(1000 1000))))
     (loop for line in (uiop:read-file-lines input-file)
-          do (cl-ppcre:register-groups-bind ((#'intern op) (#'parse-integer i1 j1 i2 j2)) ("(on|off|toggle).*?(\\d+),(\\d+).*?(\\d+),(\\d+)" line)
+          do (cl-ppcre:register-groups-bind ((#'sintern op) (#'parse-integer i1 j1 i2 j2)) ("(on|off|toggle).*?(\\d+),(\\d+).*?(\\d+),(\\d+)" line)
                (do-lights2 lights op i1 j1 i2 j2)))
     (count-brightness lights)))
+
+(defun day-06 ()
+  (let ((f (fetch-day-input-file 2015 6)))
+    (values (day-06-part-1 f)
+            (day-06-part-2 f))))

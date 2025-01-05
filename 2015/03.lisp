@@ -1,3 +1,5 @@
+(in-package :aoc2015)
+
 (defun count-houses (path)
   (labels ((c->dir (c)
              (ecase c (#\^ :north) (#\> :east) (#\< :west) (#\v :south))))
@@ -22,10 +24,15 @@
                            collect (setf pos2 (advance (c->dir c) pos2))))
                :test #'equal)))))
 
-(defun day-3-part-1 (input-file)
+(defun day-03-part-1 (input-file)
   (loop for path in (uiop:read-file-lines input-file)
         sum (count-houses path)))
 
-(defun day-3-part-2 (input-file)
+(defun day-03-part-2 (input-file)
   (loop for path in (uiop:read-file-lines input-file)
         sum (count-houses2 path)))
+
+(defun day-03 ()
+  (let ((f (fetch-day-input-file 2015 3)))
+    (values (day-03-part-1 f)
+            (day-03-part-2 f))))

@@ -1,3 +1,5 @@
+(in-package :aoc2015)
+
 (defparameter test-input "123 -> x
 456 -> y
 x AND y -> d
@@ -54,7 +56,7 @@ NOT y -> i")
         unless res
         collect line))
 
-(defun day-7-part-1 (input-file)
+(defun day-07-part-1 (input-file)
   (let ((ht (make-hash-table))
         (lines (uiop:read-file-lines input-file)))
     (loop while lines
@@ -62,3 +64,10 @@ NOT y -> i")
           (setf lines (run-wires ht lines))
           when (= 319 (length lines))
           do (return (values ht lines)))))
+
+(defun day-07-part-2 (input-file) (progn input-file -1))
+
+(defun day-07 ()
+  (let ((f (fetch-day-input-file 2015 8)))
+    (values (day-07-part-1 f)
+            (day-07-part-2 f))))
