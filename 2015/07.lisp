@@ -18,7 +18,7 @@ NOT y -> i")
 (defun parse-wire-field (x)
   (if (every #'digit-char-p x)
       (parse-integer x)
-      (intern x)))
+      (sintern x)))
 
 (define-condition missing-value (error) ())
 
@@ -29,45 +29,45 @@ NOT y -> i")
           x)
       (error 'missing-value)))
 
-;; uhh not quite sure what you're doing here anymore.
-(defun (setf get-wire-val) (new-val ht x)
-  (setf (gethash x ht) (get-wire-val ht x)))
-
 (defun update-wires (ht line)
   (let ((parsed (mapcar #'parse-wire-field (remove-if (lambda (s) (string= s "->")) (str:split " " line)))))
     (ecase (length parsed)
-      (2 (setf (gethash (second parsed) ht)
-               (get-wire-val ht (first parsed))))
-      (3 (setf (gethash (third parsed) ht)
-               (bitwise-not (get-wire-val ht (second parsed)))))
-      (4 (setf (gethash (fourth parsed) ht)
-               (funcall (ax:assoc-value op->fun (second parsed))
-                        (gethash (first parsed) ht)
-                        (if (or (eq 'LSHIFT (second parsed))
-                                (eq 'RSHIFT (second parsed)))
-                            (third parsed)
-                            (get-wire-val ht (third parsed)))))))))
+      (2
+       (setf (gethash (second parsed) ht)
+             (get-wire-val ht (first parsed))))
+      (3
+       (setf (gethash (third parsed) ht)
+             (bitwise-not (get-wire-val ht (second parsed)))))
+      (4
+       (setf (gethash (fourth parsed) ht)
+             (funcall (ax:assoc-value op->fun (second parsed))
+                      (get-wire-val ht (first parsed))
+                      (if (or (eq 'LSHIFT (second parsed))
+                              (eq 'RSHIFT (second parsed)))
+                          (third parsed)
+                          (get-wire-val ht (third parsed)))))))))
 
 (defun run-wires (ht lines)
   (loop for line in lines
         for res = (handler-case (update-wires ht line)
-                    (missing-value (c) ;;(format t "~a~%line: ~a~%" c line)
-                           (values)))
+                    (missing-value (c)
+                      (declare (ignore c))
+                      (values)))
         unless res
-        collect line))
+          collect line))
 
-(defun day-07-part-1 (input-file)
+(defun day-07% (input-file &optional b)
   (let ((ht (make-hash-table))
         (lines (uiop:read-file-lines input-file)))
+    (when b
+      (setf (nth (position-if (lambda (s) (str:ends-with? "-> b" s)) lines) lines)
+            (format nil "~a -> b" b)))
     (loop while lines
-          do (format t "~a " (length lines))
-          (setf lines (run-wires ht lines))
-          when (= 319 (length lines))
-          do (return (values ht lines)))))
-
-(defun day-07-part-2 (input-file) (progn input-file -1))
+          do (setf lines (run-wires ht lines))
+          finally (return (gethash '|a| ht)))))
 
 (defun day-07 ()
-  (let ((f (fetch-day-input-file 2015 8)))
-    (values (day-07-part-1 f)
-            (day-07-part-2 f))))
+  (let* ((f (fetch-day-input-file 2015 7))
+         (part-1 (day-07% f)))
+    (values part-1
+            (day-07% f part-1))))
