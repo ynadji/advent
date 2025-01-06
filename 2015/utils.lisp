@@ -375,12 +375,16 @@ anything that is EQL inside the GRID will work (i.e., integers)."
 (defun function-size-in-bytes (fun)
   (reduce #'+ (sb-disassem::get-fun-segments fun) :key #'sb-disassem::seg-length))
 
-(defun partition-by (list &optional (test #'eql))
+(serapeum:defalias partition #'group)
+(defun partition-by (list &key (f #'identity) (test #'eql))
+  "Applies F to each car in LIST, splitting it each time F returns a new value
+based on TEST."
   (labels ((aux (list test partition acc)
              (if (null list)
                  (rest (nreverse (if (null partition) acc (cons partition acc))))
                  (let ((x (first list)))
-                   (if (funcall test x (first partition))
+                   (if (and partition
+                            (funcall test (funcall f x) (funcall f (first partition))))
                        (aux (rest list) test (cons x partition) acc)
                        (aux (rest list) test (list x) (cons partition acc)))))))
     (aux list test nil nil)))
