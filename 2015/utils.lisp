@@ -375,6 +375,16 @@ anything that is EQL inside the GRID will work (i.e., integers)."
 (defun function-size-in-bytes (fun)
   (reduce #'+ (sb-disassem::get-fun-segments fun) :key #'sb-disassem::seg-length))
 
+(defun partition-by (list &optional (test #'eql))
+  (labels ((aux (list test partition acc)
+             (if (null list)
+                 (rest (nreverse (if (null partition) acc (cons partition acc))))
+                 (let ((x (first list)))
+                   (if (funcall test x (first partition))
+                       (aux (rest list) test (cons x partition) acc)
+                       (aux (rest list) test (list x) (cons partition acc)))))))
+    (aux list test nil nil)))
+
 (defun frequencies (list)
   (let ((ht (make-hash-table)))
     (loop for x in list do (incf (gethash x ht 0)))
