@@ -26,6 +26,22 @@
 1,6
 2,0")
 
+;; speedup ideas:
+;;
+;; slowdown is in dijkstra, primarily due to generic dispatch slowdown/hashmaps
+;; (i think). we could probably speed that up in general by re-using the
+;; hash-tables where possible and just (CLRHASHing) in between. would have to
+;; make disjkstra work with empty hash-tables (i.e., gethash on dist default to
+;; MOST-POSITIVE-FIXNUM. this would lead to speedups in general and maybe makes
+;; sense to do this when you abstract disjktra out.
+;;
+;; Al's suggestion of only redoing dijkstras if our path bordered a byte. he
+;; claims this reduced the checks from ~500 (bruteforce in reverse) to 5. which
+;; took his down from 400ms to 20ms. given i only do 12 in ~450ms this would put
+;; me at ~190 if the improvements were the same. as of day 18, that would get me
+;; close to the 1s barrier, but probably not below it.
+;;
+
 (defun dijkstra2 (starts maze)
   (let* ((dist (initialize-dist maze))
          (prev (make-hash-table :test #'equal)))
