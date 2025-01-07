@@ -2,7 +2,8 @@
 (defpackage :aoc2015
   (:use :cl :arrow-macros)
   (:local-nicknames (:g :cl-graph)
-                    (:ax :alexandria))
+                    (:ax :alexandria)
+                    (:jzon :com.inuoe.jzon))
   (:export :day-01
            :day-02
            :day-03
