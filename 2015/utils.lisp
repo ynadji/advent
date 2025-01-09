@@ -399,3 +399,12 @@ based on TEST."
   (destructuring-bind (x . y) (pos- p1 p2)
     (declare (type fixnum x y))
     (the fixnum (+ (the fixnum (abs x)) (the fixnum (abs y))))))
+
+(defun nths (list &rest ns)
+  (loop for i from 0 for x in list
+        when (member i ns)
+          collect x))
+
+;; for tasks where i need to hash a POS, would it be faster to use an EQL
+;; hash-table and just have two layers? could generalize it to do the same with
+;; a (X Y DIR) key as well.
