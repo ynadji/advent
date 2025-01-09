@@ -141,6 +141,10 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^")
                       (get-all-box-columns% grid direction (rest positions) acc-positions)))
             (get-all-box-columns% grid direction (rest positions) acc-positions)))))
 
+;; this is a mess. my recursion is sloppy, so i needed to remove duplicates as
+;; well as subsets so i only shift a row/column once. the SORT is so shorter
+;; subsequences appear first such that they will get removed by the SUBSETP
+;; check in REMOVE-DUPLICATES.
 (defun get-all-box-columns (grid direction pos)
   (let ((positions (nth-value 1 (peek-to-boundary direction pos grid '(#\. #\#)))))
     (remove-duplicates

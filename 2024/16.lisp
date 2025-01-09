@@ -58,6 +58,8 @@
             do (setf min-state state min-score state-score))
     (values min-state min-score)))
 
+;; TODO: subclass cl-heap:fibonacci-heap to also track HEAP-MAP internally so
+;; you can just do decrease-key directly with whatever you're storing.
 (defun make-heap (dist)
   (flet ((my-key (obj &rest values)
            (if values
