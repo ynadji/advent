@@ -21,15 +21,17 @@ HOHOHO")
     (values (mapcar (lambda (rule) (str:split " => " rule)) (str:split #\Newline rules))
             molecule)))
 
-(function-cache:defcached generate-possible-replacements (molecule old new &optional (start 0) acc)
-  (declare (optimize (speed 3)))
-  (multiple-value-bind (new-molecule changed?) (cl-ppcre:regex-replace old molecule new :start start)
-    (if changed?
-        (generate-possible-replacements molecule old new (+ start (length old))
-                                        (cons (str:concat (subseq molecule 0 start) new-molecule) acc))
-        acc)))
+(defun generate-possible-replacements (molecule old new)
+  (labels ((aux (molecule old new &optional (start 0) acc)
+             (declare (optimize (speed 3)))
+             (multiple-value-bind (new-molecule changed?) (cl-ppcre:regex-replace old molecule new :start start)
+               (if changed?
+                   (aux molecule old new (+ start (length old))
+                        (cons (str:concat (subseq molecule 0 start) new-molecule) acc))
+                   acc))))
+    (aux molecule old new)))
 
-(defun generate-all-possible-replacements (molecule rules)
+(function-cache:defcached generate-all-possible-replacements (molecule rules)
   (remove-duplicates
    (loop for (old new) in rules append (generate-possible-replacements molecule old new))
    :test #'equal))
