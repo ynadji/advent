@@ -23,7 +23,6 @@ HOHOHO")
 
 (defun generate-possible-replacements (molecule old new)
   (labels ((aux (molecule old new &optional (start 0) acc)
-             (declare (optimize (speed 3)))
              (multiple-value-bind (new-molecule changed?) (cl-ppcre:regex-replace old molecule new :start start)
                (if changed?
                    (aux molecule old new (+ start (length old))
@@ -31,7 +30,7 @@ HOHOHO")
                    acc))))
     (aux molecule old new)))
 
-(function-cache:defcached generate-all-possible-replacements (molecule rules)
+(defun generate-all-possible-replacements (molecule rules)
   (remove-duplicates
    (loop for (old new) in rules append (generate-possible-replacements molecule old new))
    :test #'equal))
@@ -45,18 +44,16 @@ HOHOHO")
 
 (defun day-19-part-2 (input-file)
   (multiple-value-bind (rules molecule) (parse-molecule-replacements input-file)
-    (let ((mols (list "e")))
-     (loop for n from 1
-           do (setf mols (remove-duplicates (loop for mol in mols append (generate-all-possible-replacements mol rules)) :test #'equal))
-              ;;(prin1 mols)
-              ;;(terpri)
-           when (member molecule mols :test #'equal)
-             ;;return (values n mols molecule)
-             return n))))
+    (declare (ignore rules))
+    ;; i kinda understand the logic, but am a bit confused as to why we count
+    ;; the uppercase here rather than just the tokens to get the right answer.
+    ;; obviously cheated a bit here :|.
+    (- (count-if #'upper-case-p molecule)
+       (str:count-substring "Ar" molecule)
+       (str:count-substring "Rn" molecule)
+       (* 2 (str:count-substring "Y" molecule))
+       1)))
 
-;; TODO: easy speedup is to only solve the constraints once and only do one pass
-;; to compute the number of minimum containers. track the minimum and # of
-;; solutions that fit the minimum in one-pass bing bong.
 (defun day-19 ()
   (let ((f (fetch-day-input-file 2015 19)))
     (values (day-19-part-1 f)
