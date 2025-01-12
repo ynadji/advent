@@ -13,7 +13,7 @@ NOT y -> i")
 (defun rshift (x n) (ash x (- n)))
 (defun bitwise-not (x) (mod (lognot x) (expt 2 16)))
 
-(defparameter op->fun `((AND . ,#'logand) (OR . ,#'logior) (LSHIFT . ,#'lshift) (RSHIFT . ,#'rshift)))
+(defparameter op->fun7 `((AND . ,#'logand) (OR . ,#'logior) (LSHIFT . ,#'lshift) (RSHIFT . ,#'rshift)))
 
 (defun parse-wire-field (x)
   (if (every #'digit-char-p x)
@@ -40,7 +40,7 @@ NOT y -> i")
              (bitwise-not (get-wire-val ht (second parsed)))))
       (4
        (setf (gethash (fourth parsed) ht)
-             (funcall (ax:assoc-value op->fun (second parsed))
+             (funcall (ax:assoc-value op->fun7 (second parsed))
                       (get-wire-val ht (first parsed))
                       (if (or (eq 'LSHIFT (second parsed))
                               (eq 'RSHIFT (second parsed)))
