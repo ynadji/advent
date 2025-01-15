@@ -1,7 +1,8 @@
 (in-package :aoc2015)
+
 (defparameter *debug* t)
 
-(defstruct (unit (:print-function print-unit)) name (hp 0) (mana 0) (armor 0)) ;; make output simpler
+(defstruct (unit (:print-function print-unit)) name (hp 0) (mana 0) (armor 0) (mana-used 0)) ;; make output simpler
 (defstruct effect (damage 0) (mana 0) (armor 0))
 (defstruct spell name (timer 1 :type fixnum) mana effect targets)
 
@@ -42,7 +43,7 @@
       ;; TODO: other lose conditions (no mana, uhh i think that's it)
       (when (<= (unit-hp unit) 0)
         (format *debug* "~a has died!~%" (unit-name unit))
-        (throw 'game-over unit)))))
+        (throw 'game-over (cons player boss))))))
 
 ;; function for "choose possible spells" hmm how can i make this work while bruteforcing?
 ;;; this is the point where i need to be able to backtrack if it fails. this
@@ -62,8 +63,7 @@
                    when (plusp (spell-timer dot))
                      collect dot)))
     (let ((boss-atk (make-spell :name 'attack :effect (make-effect :damage 8) :targets 'player))
-          active-spells
-          (mana-spent 0)) ; won't bubble up through the transfer of control
+          active-spells)
       (catch 'game-over
         (loop while (and (plusp (unit-hp player)) (plusp (unit-hp boss)))
               for n from 1
@@ -78,7 +78,7 @@
                        (push spell active-spells))
                      (cast! spell player boss))
                  (decf (unit-mana player) (spell-mana spell))
-                 (incf mana-spent (spell-mana spell))
+                 (incf (unit-mana-used player) (spell-mana spell))
               do (format *debug* "## BOSS TURN~%")
               do (setf active-spells (proc-active-spells active-spells))
               do (cast! boss-atk player boss)
