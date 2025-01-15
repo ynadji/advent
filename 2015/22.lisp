@@ -1,4 +1,5 @@
 (in-package :aoc2015)
+(defparameter *debug* t)
 
 (defstruct (unit (:print-function print-unit)) name (hp 0) (mana 0) (armor 0)) ;; make output simpler
 (defstruct effect (damage 0) (mana 0) (armor 0))
@@ -17,10 +18,10 @@
 
 (defun cast! (spell player boss)
   (if (member (spell-name spell) '(magic-missile drain attack))
-      (format t "~a casts ~a on ~a~%" (if (eq (spell-name spell) 'attack) 'boss 'player) (spell-name spell) (spell-targets spell))
-      (format t "~a procs on ~a~%" (spell-name spell) (spell-targets spell)))
+      (format *debug* "~a casts ~a on ~a~%" (if (eq (spell-name spell) 'attack) 'boss 'player) (spell-name spell) (spell-targets spell))
+      (format *debug* "~a procs on ~a~%" (spell-name spell) (spell-targets spell)))
   (labels ((modify (target spell &optional invert-dmg)
-             (format t "~a" target)
+             (format *debug* "~a" target)
              (let ((effect (spell-effect spell)))
                (when (plusp (effect-damage effect))
                 (decf (unit-hp target) (if invert-dmg
@@ -32,20 +33,17 @@
                (when (and (plusp (effect-armor effect))
                           (zerop (unit-armor target)))
                 (incf (unit-armor target) (effect-armor effect)))
-               (format t " -> ~a~%" target))))
+               (format *debug* " -> ~a~%" target))))
     (ecase (spell-targets spell)
       (boss (modify boss spell))
       (player (modify player spell))
       (both (modify player spell t) (modify boss spell)))
     (dolist (unit (list boss player))
-      ;; other lose conditions (no mana, uhh i think that's it)
+      ;; TODO: other lose conditions (no mana, uhh i think that's it)
       (when (<= (unit-hp unit) 0)
-        (format t "~a has died!~%" (unit-name unit))
+        (format *debug* "~a has died!~%" (unit-name unit))
         (throw 'game-over unit)))))
 
-;; how can i track mana consumption?
-;;; on CAST! for spells with timer of 1
-;;; on PUSH for spells with timer > 1
 ;; function for "choose possible spells" hmm how can i make this work while bruteforcing?
 ;;; this is the point where i need to be able to backtrack if it fails. this
 ;;; seems messy with what i have so far...
@@ -57,28 +55,31 @@
                    do (cast! dot player boss)
                       (decf (spell-timer dot))
                       (when (zerop (spell-timer dot))
-                        (format t "~a effect has worn off~%" (spell-name dot)))
+                        (format *debug* "~a effect has worn off~%" (spell-name dot)))
                       (when (and (eq 'shield (spell-name dot))
                                  (zerop (spell-timer dot)))
                         (decf (unit-armor player) (effect-armor (spell-effect dot))))
                    when (plusp (spell-timer dot))
                      collect dot)))
     (let ((boss-atk (make-spell :name 'attack :effect (make-effect :damage 8) :targets 'player))
-          active-spells)
+          active-spells
+          (mana-spent 0)) ; won't bubble up through the transfer of control
       (catch 'game-over
         (loop while (and (plusp (unit-hp player)) (plusp (unit-hp boss)))
               for n from 1
               for sname in spell-names
               for spell = (find-spell sname *available-spells*)
-              do (format t "# TURN ~a~%" n)
-              do (format t "## PLAYER TURN~%")
+              do (format *debug* "# TURN ~a~%" n)
+              do (format *debug* "## PLAYER TURN~%")
               do (setf active-spells (proc-active-spells active-spells))
               do (if (> (spell-timer spell) 1)
                      (unless (find-spell (spell-name spell) active-spells)
-                       (format t "~a begins casting ~a on ~a~%" 'player (spell-name spell) (spell-targets spell))
+                       (format *debug* "~a begins casting ~a on ~a~%" 'player (spell-name spell) (spell-targets spell))
                        (push spell active-spells))
                      (cast! spell player boss))
-              do (format t "## BOSS TURN~%")
+                 (decf (unit-mana player) (spell-mana spell))
+                 (incf mana-spent (spell-mana spell))
+              do (format *debug* "## BOSS TURN~%")
               do (setf active-spells (proc-active-spells active-spells))
               do (cast! boss-atk player boss)
                  (terpri))))))
