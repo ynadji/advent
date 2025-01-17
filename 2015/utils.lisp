@@ -405,6 +405,56 @@ based on TEST."
         when (member i ns)
           collect x))
 
+(defun prime-factors (n &optional acc)
+  (if (> n 1)
+      (do ((x 2 (1+ x)))
+	  ((zerop (mod n x))
+	   (prime-factors (/ n x) (cons x acc))))
+      acc))
+
+(defun powerset (lst)
+  (labels ((aux (lst nlst)
+	     (if (null lst)
+		 nlst
+		 (let ((hd (car lst))
+		       (tl (cdr lst)))
+		   (aux tl (append nlst (mapcar #'(lambda (ll) (cons hd ll)) nlst)))))))
+  (aux lst '(()))))
+
+(defun divisors (x)
+  (when (plusp x)
+    (remove-duplicates
+     (loop for y from 1 to (isqrt x)
+	   for z = (/ x y)
+	   when (integerp z) collect y and collect z))))
+
+(defun factorial (n &optional (acc 1))
+  (if (<= n 1)
+      acc
+      (factorial (- n 1) (* acc n))))
+
+(defun choose (n k)
+  (/ (factorial n) (* (factorial (- n k)) (factorial k))))
+
+(defun choose-with-replacement (n k)
+  (choose (+ n k -1) k))
+
+(function-cache:defcached stirling-2nd (n k)
+  (cond ((and (zerop n) (zerop k)) 1)
+        ((or (= k 0) (< k 0) (< n 0)) 0)
+        ((= k n) 1)
+        ((> k n) 0)
+        (t (+ (* k (stirling-2nd (1- n) k))
+              (stirling-2nd (1- n) (1- k))))))
+;; define COMBINATIONS
+
+;; how do i uhh define pack N balls into M bins?
+;; for all (combinations M balls) (as balls1)
+;; for all (combinations M (set- balls above-balls) (as balls2)
+;; yield (balls1 balls2 other-balls)
+;;
+;; seems like a lot of CONSing.
+
 ;; for tasks where i need to hash a POS, would it be faster to use an EQL
 ;; hash-table and just have two layers? could generalize it to do the same with
 ;; a (X Y DIR) key as well.
