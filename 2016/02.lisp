@@ -21,12 +21,10 @@ UUUUD")
      (loop with pos = (if (eq keypad *keypad*) (cons 1 1) (cons 2 0))
            for inst in instructions
            do (loop for c across inst for dir = (ecase c (#\U :north) (#\D :south) (#\L :west) (#\R :east))
-                    do (ax:when-let ((new-pos (advance dir pos)))
-                         (when (ax:assoc-value keypad new-pos :test #'equal)
-                           (setf pos new-pos))))
-              (setf digit (ax:assoc-value keypad pos :test #'equal))
-           when digit
-             collect digit)
+                    do (ax:when-let* ((new-pos (advance dir pos))
+                                      (new-digit (ax:assoc-value keypad new-pos :test #'equal)))
+                         (setf pos new-pos digit new-digit)))
+           collect digit)
      'string)))
 
 (defun day-02 ()
