@@ -7,7 +7,7 @@
 ;; export all of these!
 ;; maybe just use http://quickutil.org/how ?
 
-(declaim (inline manhattan-distance pos+ pos-))
+(declaim (inline manhattan-distance pos+ pos- pos*))
 
 (defun sintern (name)
   "intern to self, i.e., the current AOC package. since this is called from the
@@ -253,6 +253,9 @@ anything that is EQL inside the GRID will work (i.e., integers)."
 (defun 90-clockwise-direction (direction)
   (nth (mod (+ 2 (position direction *8-winds*)) 8) *8-winds*))
 
+(defun 90-counter-clockwise-direction (direction)
+  (nth (mod (+ 6 (position direction *8-winds*)) 8) *8-winds*))
+
 (defun make-inter-cardinal (cardinal-1 cardinal-2)
   (ecase cardinal-1
     ((:north :south) (ecase cardinal-2
@@ -281,6 +284,12 @@ anything that is EQL inside the GRID will work (i.e., integers)."
   (declare (optimize (speed 3) (safety 0)))
   (cons (the fixnum (- (the fixnum (car p1)) (the fixnum (car p2))))
         (the fixnum (- (the fixnum (cdr p1)) (the fixnum (cdr p2))))))
+
+(defun pos* (p c)
+  (declare (optimize (speed 3) (safety 0))
+           (type fixnum c))
+  (cons (the fixnum (* (the fixnum (car p)) c))
+        (the fixnum (* (the fixnum (cdr p)) c))))
 
 ;; how can i make it so i can easily do pos or i,j as argument?
 ;; this will likely be a bottleneck. how can i make it faster?
