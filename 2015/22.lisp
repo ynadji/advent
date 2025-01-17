@@ -1,8 +1,8 @@
 (in-package :aoc2015)
 
-(defparameter *debug* t)
+(defparameter *debug* nil)
 
-(defstruct (unit (:print-function print-unit)) name (hp 0) (mana 0) (armor 0) (mana-used 0)) ;; make output simpler
+(defstruct (unit (:print-function print-unit)) name (hp 0) (mana 0) (armor 0) (boss-atk 8)) ;; make output simpler
 (defstruct effect (damage 0) (mana 0) (armor 0))
 (defstruct spell name (timer 1 :type fixnum) mana effect targets)
 
@@ -40,7 +40,6 @@
       (player (modify player spell))
       (both (modify player spell t) (modify boss spell)))
     (dolist (unit (list boss player))
-      ;; TODO: other lose conditions (no mana, uhh i think that's it)
       (when (<= (unit-hp unit) 0)
         (format *debug* "~a has died!~%" (unit-name unit))
         (throw 'game-over (list player boss nil))))))
@@ -62,7 +61,7 @@
                         (decf (unit-armor player) (effect-armor (spell-effect dot))))
                    when (plusp (spell-timer dot))
                      collect dot)))
-    (let ((boss-atk (make-spell :name 'attack :mana 0 :effect (make-effect :damage 8) :targets 'player))
+    (let ((boss-atk (make-spell :name 'attack :mana 0 :effect (make-effect :damage (unit-boss-atk boss)) :targets 'player))
           active-spells)
       (catch 'game-over
         (loop while (and (plusp (unit-hp player)) (plusp (unit-hp boss)))
@@ -81,11 +80,45 @@
                  (decf (unit-mana player) (spell-mana spell))
                  (when (minusp (unit-mana player))
                    (throw 'game-over (list player boss 'out-of-mana)))
-                 (incf (unit-mana-used player) (spell-mana spell))
               do (format *debug* "## BOSS TURN~%")
               do (setf active-spells (proc-active-spells active-spells))
               do (cast! boss-atk player boss)
-                 (terpri))))))
+                 (when *debug* (terpri)))))))
+
+(defun won? (&optional player boss early-fail?)
+  (and player boss
+       (not early-fail?)
+       (plusp (unit-hp player))
+       (not (plusp (unit-hp boss)))))
+
+(defun unwinnable? (&optional player boss early-fail?)
+  (and player boss
+       (or early-fail? (not (plusp (unit-hp player))))))
+
+(defun find-win% (player boss &optional (spell-sequences '(nil)) (available-spells '((magic-missile) (drain) (shield) (poison) (recharge))))
+  (labels ((new-spell-sequences (spell-sequences available-spells)
+             (loop for to-try in available-spells
+                   append (loop for spell-sequence in spell-sequences
+                                collect (append spell-sequence to-try)))))
+    (loop for op = (copy-unit player) for ob = (copy-unit boss)
+          for spell-sequence in (new-spell-sequences spell-sequences available-spells)
+          for res = (fight op ob spell-sequence)
+          when (apply #'won? res)
+            collect spell-sequence into wins
+          unless (apply #'unwinnable? res)
+            collect spell-sequence into possibilities
+          finally
+             (return (values possibilities wins)))))
+
+(defun compute-mana-cost (spells)
+  (reduce #'+ (mapcar #'spell-mana (mapcar (lambda (spell-name) (find spell-name *available-spells* :key #'spell-name)) spells))))
+
+(defun find-win (player boss &optional (spell-sequences '(nil)))
+  (multiple-value-bind (possible-spell-sequences winning-spell-sequences)
+      (find-win% player boss spell-sequences)
+    (if winning-spell-sequences
+        (apply #'min (mapcar #'compute-mana-cost winning-spell-sequences))
+        (find-win player boss possible-spell-sequences))))
 
 ;; another approach would be to just try all the combos, however, the boss has
 ;; 5x hp and if we assume a linear 5x increase in the number of turns to 25 we
@@ -99,7 +132,10 @@
 ;; a lot of these can probably be pruned once you find a single victory. if you
 ;; ever spend more mana than that and you aren't done you can exit early.
 ;; just try it!
-(defun day-22-part-1 (input-file) (progn input-file -1))
+(defun day-22-part-1 (input-file)
+  (declare (ignore input-file))
+  (find-win (make-unit :name 'player :hp 50 :mana 500 :armor 0)
+            (make-unit :name 'boss :hp 71 :boss-atk 10)))
 
 (defun day-22-part-2 (input-file) (progn input-file -1))
 
