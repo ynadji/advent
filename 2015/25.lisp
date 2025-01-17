@@ -21,7 +21,7 @@
   (destructuring-bind (row col) (string-to-num-list (uiop:read-file-string input-file))
     (find-code-at-index row col)))
 
-(defun day-25-part-2 (input-file) (progn input-file -1))
+(defun day-25-part-2 (input-file) (progn input-file 0))
 
 (defun day-25 ()
   (let ((f (fetch-day-input-file 2015 25)))
