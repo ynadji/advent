@@ -1,6 +1,7 @@
 (in-package :aoc2015)
 
 (defparameter *debug* nil)
+(defparameter *hard-mode* nil)
 
 (defstruct (unit (:print-function print-unit)) name (hp 0) (mana 0) (armor 0) (boss-atk 8)) ;; make output simpler
 (defstruct effect (damage 0) (mana 0) (armor 0))
@@ -62,6 +63,7 @@
                    when (plusp (spell-timer dot))
                      collect dot)))
     (let ((boss-atk (make-spell :name 'attack :mana 0 :effect (make-effect :damage (unit-boss-atk boss)) :targets 'player))
+          (hard-mode (make-spell :name 'hard-mode :mana 0 :effect (make-effect :damage 1) :targets 'player))
           active-spells)
       (catch 'game-over
         (loop while (and (plusp (unit-hp player)) (plusp (unit-hp boss)))
@@ -69,6 +71,8 @@
               for sname in spell-names
               for spell = (copy-spell (find-spell sname *available-spells*))
               do (format *debug* "# TURN ~a~%" n)
+              when *hard-mode*
+                do (cast! hard-mode player boss)
               do (format *debug* "## PLAYER TURN~%")
               do (setf active-spells (proc-active-spells active-spells))
               do (if (> (spell-timer spell) 1)
@@ -120,24 +124,22 @@
         (apply #'min (mapcar #'compute-mana-cost winning-spell-sequences))
         (find-win player boss possible-spell-sequences))))
 
-;; another approach would be to just try all the combos, however, the boss has
-;; 5x hp and if we assume a linear 5x increase in the number of turns to 25 we
-;; have:
+;; this just tries every possible combination and takes forever (47s!). you
+;; really need to both clean up the code and figure out ways to prune this so it
+;; runs more quickly.
 ;;
-;; AOC2015> (loop for n from 1 upto 25 sum (expt 5 n))
-;; 372529029846191405
-;;
-;; way too many attempts to simulate.
-;;
-;; a lot of these can probably be pruned once you find a single victory. if you
-;; ever spend more mana than that and you aren't done you can exit early.
-;; just try it!
+;; probably worth making the test cases run with just a function so you can
+;; ensure you don't break those while refactoring.
 (defun day-22-part-1 (input-file)
-  (declare (ignore input-file))
-  (find-win (make-unit :name 'player :hp 50 :mana 500 :armor 0)
-            (make-unit :name 'boss :hp 71 :boss-atk 10)))
+  (destructuring-bind (boss-hp boss-atk) (string-to-num-list (uiop:read-file-string input-file))
+    (find-win (make-unit :name 'player :hp 50 :mana 500 :armor 0)
+              (make-unit :name 'boss :hp boss-hp :boss-atk boss-atk))))
 
-(defun day-22-part-2 (input-file) (progn input-file -1))
+(defun day-22-part-2 (input-file)
+  (let ((*hard-mode* t))
+    (destructuring-bind (boss-hp boss-atk) (string-to-num-list (uiop:read-file-string input-file))
+      (find-win (make-unit :name 'player :hp 50 :mana 500 :armor 0)
+                (make-unit :name 'boss :hp boss-hp :boss-atk boss-atk)))))
 
 (defun day-22 ()
   (let ((f (fetch-day-input-file 2015 22)))
