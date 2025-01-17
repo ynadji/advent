@@ -43,8 +43,8 @@
 (defparameter test-boss '(12 7 2))
 
 (defun win? (player boss)
-  (let ((boss-net-attack (- (second boss) (third player)))
-        (player-net-attack (- (second player) (third boss))))
+  (let ((boss-net-attack (max 1 (- (second boss) (third player))))
+        (player-net-attack (max 1 (- (second player) (third boss)))))
     (loop with player-hp = (first player)
           with boss-hp = (first boss)
           do (decf boss-hp player-net-attack)
