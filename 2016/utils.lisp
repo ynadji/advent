@@ -376,6 +376,29 @@ anything that is EQL inside the GRID will work (i.e., integers)."
   (with-input (input-file string)
     (read-grid input-file :element-type element-type :starts? starts?)))
 
+(defun shift-array (arr n &key row col)
+  "Shift elements in ROW and/or COL by N indices to the right (left if N is
+negative) in ARR. CONSes the total number of elements in the array but modifies
+the array ARR in place and returns it."
+  (cond ((and (null row) (null col))
+         arr)
+        ((and row col)
+         ;; maybe makes more sense for this to not do anything since the order
+         ;; definitely matters. or just make that another keyword argument?
+         (shift-array (shift-array arr n :row row) n :col col))
+        (row (let ((max-col (array-dimension arr 1)))
+               (loop for i from 0
+                     for x in (loop for i from (mod (- n) max-col) repeat max-col
+                                    collect (aref arr row (mod i max-col)))
+                     do (setf (aref arr row i) x)))
+             arr)
+        (col (let ((max-row (array-dimension arr 0)))
+               (loop for i from 0
+                     for x in (loop for i from (mod (- n) max-row) repeat max-row
+                                    collect (aref arr (mod i max-row) col))
+                     do (setf (aref arr i col) x)))
+             arr)))
+
 ;; From https://github.com/bo-tato
 (defun string-to-num-list (string)
   "Return a list of all numbers in STRING."
