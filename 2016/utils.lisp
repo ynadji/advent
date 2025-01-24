@@ -386,6 +386,8 @@ the array ARR in place and returns it."
          ;; maybe makes more sense for this to not do anything since the order
          ;; definitely matters. or just make that another keyword argument?
          (shift-array (shift-array arr n :row row) n :col col))
+        ;; rather than looping, you might be able to do this with two SUBSEQ
+        ;; calls?
         (row (let ((max-col (array-dimension arr 1)))
                (loop for i from 0
                      for x in (loop for i from (mod (- n) max-col) repeat max-col
