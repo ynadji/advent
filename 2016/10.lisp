@@ -18,7 +18,7 @@ value 2 goes to bot 2")
                                      (intern (str:upcase (nth 10 fields)) :keyword)))))
 
 (defun day-10% (input-file)
-  (labels ((inspect-chips (instructions bots outputs &optional )
+  (labels ((inspect-chips (instructions bots outputs)
              (loop for inst in instructions for (bot low high low-type high-type) = inst
                    for bot-vals = (gethash bot bots)
                    for low-ht = (if (eq low-type :bot) bots outputs)
