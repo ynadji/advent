@@ -21,7 +21,7 @@
 (defmacro make-aoc-tests (test-cases)
   `(progn
      ;; Full GC between days
-     (sb-ext:gc :full t)
+     #+sbcl (sb-ext:gc :full t)
      ,@(loop for (day expect1 expect2) in test-cases
              collect `(test ,(aoc2024:symb 'test- day)
                             (time (multiple-value-bind (res1 res2) (,(aoc2024:symb 'day- (format nil "~2,'0d" day)))

@@ -366,6 +366,7 @@ anything that is EQL inside the GRID will work (i.e., integers)."
   "Return a list of all numbers in STRING."
   (mapcar #'parse-integer (ppcre:all-matches-as-strings "[-\\d]+" string)))
 
+#+sbcl
 (defun function-size-in-bytes (fun)
   (reduce #'+ (sb-disassem::get-fun-segments fun) :key #'sb-disassem::seg-length))
 
