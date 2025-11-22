@@ -33,8 +33,8 @@
             while (= num-packages min-legroom)
             minimize qe))))
 
-;; very slow, but clean and it works. according to profiling, i spend 87%! of
-;; the time just doing the final PARTITION call to group things into threes wtf?
+;; very slow, (~72s), but clean and it works. according to profiling, i spend 87%! of the time just doing the final
+;; PARTITION call to group things into threes wtf?
 (defun day-24 ()
   (let ((f (fetch-day-input-file 2015 24)))
     (values (day-24% f 3)
