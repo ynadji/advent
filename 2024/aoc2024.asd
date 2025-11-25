@@ -5,7 +5,6 @@
   :license "MIT"
   :depends-on ("str" "uiop" "alexandria" "function-cache" "serapeum" "drakma" "arrow-macros" "cl-graph" "lparallel" "magicl" "cl-ansi-text" "cl-heap" "btrie" "aoc-utils")
   :components ((:file "pkg")
-               (:file "utils")
                (:file "01")
                (:file "02")
                (:file "03")
