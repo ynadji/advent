@@ -27,9 +27,9 @@
         (if (char= #\S (paref maze (first starts-and-ends)))
             (values (add-all-dirs (first starts-and-ends)) (add-all-dirs (second starts-and-ends)))
             (values (add-all-dirs (second starts-and-ends)) (add-all-dirs (first starts-and-ends))))
-      (multiple-value-bind (dist prev) (dijkstra2 starts maze)
+      (multiple-value-bind (dist prev) (aoc-utils:dijkstra starts maze :reachable? #'16-reachable?)
         (multiple-value-bind (min-state min-score)
-            (min-score-state ends dist)
+            (aoc-utils:min-score-state ends dist)
           (declare (ignore min-score))
           (cons (cdr (first starts)) (reverse (remove-duplicates (mapcar #'cdr (walk-back prev min-state (cdar starts))) :test #'equal))))))))
 
