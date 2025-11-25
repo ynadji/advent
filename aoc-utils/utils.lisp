@@ -552,6 +552,7 @@ based on TEST."
                                           (declare (ignore s0 s1))
                                           1))
                                (reachable? (lambda (M pos dir) (declare (ignorable M pos dir)) t)))
+  "Run dijkstra's algorithm on graph represented by MAZE starting at any of the states in STARTS. States are represented as (DIRECTION (I . J)) where DIRECTION is one of the cardinal directions. COST-FN defines the cost based on the previous and current state. REACHABLE? return a truthy value if a state is reachable based on the grid (M) POS and DIR."
   (let* ((dist (initialize-dist maze))
          (prev (make-hash-table :test #'equal)))
     (loop for start in starts do (setf (gethash start dist) 0))

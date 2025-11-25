@@ -59,6 +59,7 @@
             (aoc-utils:min-score-state (loop for dir in *cardinals* collect (cons dir (second starts))) dist)
           (values min-score prev min-state start))))))
 
+;; TODO: Maybe worth adding to utils?
 (defun walk-back (prev state start-state)
   (if (equal state start-state)
       (cons start-state nil)
