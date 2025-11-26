@@ -92,8 +92,11 @@ a unique identifier that maps X to a unique, increasing integer."
         path
         (progn
           (with-open-file (out cached-file :if-does-not-exist :create :direction :output)
-            (princ (drakma:http-request url :cookie-jar (make-cookie-jar session-cookie))
-                   out))
+            (let ((puzzle-input (drakma:http-request url :cookie-jar (make-cookie-jar session-cookie))))
+              (if (string/= puzzle-input "Puzzle inputs differ by user.  Please log in to get your puzzle input.
+")
+                  (princ puzzle-input out)
+                  (error "Not logged in! Update ~~/.aoc-session-cookie with the correct cookie value!"))))
           (probe-file cached-file))))))
 
 (defvar *day-template* "(in-package :aoc~a)
