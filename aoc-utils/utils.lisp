@@ -431,8 +431,8 @@ based on TEST."
                        (aux (rest list) test (list x) (cons partition acc)))))))
     (aux list test nil nil)))
 
-(defun frequencies (list)
-  (let ((ht (make-hash-table)))
+(defun frequencies (list &key (test #'eql))
+  (let ((ht (make-hash-table :test test)))
     (loop for x in list do (incf (gethash x ht 0)))
     (ax:hash-table-alist ht)))
 
@@ -502,13 +502,13 @@ based on TEST."
 ;; a (X Y DIR) key as well.
 
 ;;; dijkstra stuff
-(defun initialize-dist (maze)
-  (let ((dist (make-hash-table :test #'equal :size (* 4 (array-total-size maze)))))
+(defun initialize-dist (maze &optional (non-states '(#\#)))
+  (let ((dist (make-hash-table :test #'state= :size (array-total-size maze))))
     (loop for i below (array-dimension maze 0) do
       (loop for j below (array-dimension maze 1) do
         (loop for dir in *cardinals* do
-          (unless (char= #\# (aref maze i j))
-            (setf (gethash (cons dir (cons i j)) dist) most-positive-fixnum)))))
+          (unless (member (aref maze i j) non-states)
+            (setf (gethash (make-instance 'state :dir dir :pos (cons i j)) dist) most-positive-fixnum)))))
     dist))
 
 ;; TODO: subclass cl-heap:fibonacci-heap to also track HEAP-MAP internally so
@@ -519,7 +519,7 @@ based on TEST."
                (setf (gethash obj dist) (car values))
                (gethash obj dist))))
     (let ((heap (make-instance 'cl-heap:fibonacci-heap :key #'my-key))
-          (heap-map (make-hash-table :test #'equal :size (hash-table-size dist))))
+          (heap-map (make-hash-table :test #'state= :size (hash-table-size dist))))
       (loop for state being the hash-key of dist
             do (setf (gethash state heap-map)
                      (nth-value 1 (cl-heap:add-to-heap heap state))))
@@ -550,6 +550,45 @@ based on TEST."
 ;; me at ~190 if the improvements were the same. as of day 18, that would get me
 ;; close to the 1s barrier, but probably not below it.
 ;;
+;; TODO: states need to include metadata to solve day 17, 2023
+(defclass state ()
+  ((pos :accessor pos :initarg :pos)
+   (dir :accessor dir :initarg :dir)))
+
+(defmethod print-object ((state state) out)
+  (print-unreadable-object (state out :type t)
+    (format out "~a heading ~a" (pos state) (dir state))))
+
+(defun state= (s0 s1)
+  (and (eq (dir s0) (dir s1))
+       (equal (pos s0) (pos s1))))
+
+(defun state-pos= (s0 s1)
+  (equal (pos s0) (pos s1)))
+
+(defun sxhash-state (s)
+  (sxhash `(,(dir s) ,(pos s))))
+
+(defun sxhash-pos (s)
+  (sxhash (pos s)))
+
+(sb-ext:define-hash-table-test state= sxhash-state)
+(sb-ext:define-hash-table-test state-pos= sxhash-pos)
+
+(defun fast-remove-duplicates (seq &key (test #'eql))
+  (let ((ht (make-hash-table :test test :size (length seq))))
+    (loop for x in seq do (setf (gethash x ht) t)
+          finally (return (ax:hash-table-keys ht)))))
+
+(defun neighbor-states (grid pos
+                        &key
+                          (reachable? (lambda (M pos dir) (declare (ignorable M pos dir)) t)))
+  (multiple-value-bind (poses dirs) (2d-neighbors grid pos :reachable? reachable?)
+    (loop for pos in poses for dir in dirs
+          collect (make-instance 'state :pos pos :dir dir))))
+
+;; REACHABLE? should just take the GRID and STATE. This way. the function isn't so specific to POS and DIR. does this
+;; mean we'll be spending a bunch of time making new states? How do we generically make states though??
 (defun dijkstra (starts maze &key
                                (cost-fn (lambda (s0 s1)
                                           (declare (ignore s0 s1))
@@ -557,15 +596,14 @@ based on TEST."
                                (reachable? (lambda (M pos dir) (declare (ignorable M pos dir)) t)))
   "Run dijkstra's algorithm on graph represented by MAZE starting at any of the states in STARTS. States are represented as (DIRECTION (I . J)) where DIRECTION is one of the cardinal directions. COST-FN defines the cost based on the previous and current state. REACHABLE? return a truthy value if a state is reachable based on the grid (M) POS and DIR."
   (let* ((dist (initialize-dist maze))
-         (prev (make-hash-table :test #'equal)))
+         (prev (make-hash-table :test #'state=)))
     (loop for start in starts do (setf (gethash start dist) 0))
     (multiple-value-bind (heap heap-map) (make-heap dist)
       (loop for state = (cl-heap:pop-heap heap)
             while state
-            for dir = (car state)
-            for (new-states new-dirs) = (multiple-value-list (2d-neighbors maze (cdr state) :reachable? reachable?))
-            do (loop for new-state in (mapcar #'cons new-dirs new-states)
-                     for new-dir = (car new-state)
+            for new-states = (neighbor-states maze (pos state) :reachable? reachable?)
+            do (loop for new-state in new-states
+                     for new-dir = (dir new-state)
                      for new-cost = (funcall cost-fn state new-state)
                      do (let ((alt (+ (gethash state dist) new-cost)))
                           (when (< alt (gethash new-state dist))
@@ -573,7 +611,7 @@ based on TEST."
                             (setf (gethash new-state dist) alt)
                             (setf (gethash new-state prev) (list state)))
                           (when (= alt (gethash new-state dist))
-                            (pushnew state (gethash new-state prev))))))
+                            (pushnew state (gethash new-state prev) :test #'state=)))))
       (values dist prev heap))))
 
 ;; export all symbols

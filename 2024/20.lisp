@@ -19,7 +19,7 @@
 (declaim (optimize (speed 3)))
 
 (defun add-all-dirs (pos)
-  (loop for dir in *cardinals* collect (cons dir pos)))
+  (loop for dir in *cardinals* collect (make-instance 'state :dir dir :pos pos)))
 
 (defun get-optimal-path (input-file)
   (multiple-value-bind (maze starts-and-ends) (read-grid input-file :starts? (lambda (c) (member c '(#\S #\E))))
@@ -31,7 +31,7 @@
         (multiple-value-bind (min-state min-score)
             (aoc-utils:min-score-state ends dist)
           (declare (ignore min-score))
-          (cons (cdr (first starts)) (reverse (remove-duplicates (mapcar #'cdr (walk-back prev min-state (cdar starts))) :test #'equal))))))))
+          (fast-remove-duplicates (walk-back prev min-state (second starts)) :test #'state-pos=))))))
 
 ;; this can probably be further improved but it's < 1 sec so let's
 ;; move on.
@@ -40,9 +40,9 @@
   (the fixnum (loop for i fixnum from 0 for x in path
         sum
         (the fixnum (loop for j fixnum from 0 for y in path
-              when (and (< i j) (<= (the fixnum (manhattan-distance x y)) d))
+              when (and (< i j) (<= (the fixnum (manhattan-distance (pos x) (pos y))) d))
               count (>= (- (the fixnum (abs (the fixnum (- i j)))) (the
- fixnum (manhattan-distance x y))) 100))))))
+ fixnum (manhattan-distance (pos x) (pos y)))) 100))))))
 
 (defun day-20 ()
   (let* ((f (fetch-day-input-file 2024 20))

@@ -42,11 +42,11 @@
     (values memory bytes)))
 
 (defun find-shortest-path-score (memory start end)
-  (multiple-value-bind (dist prev heap) (aoc-utils:dijkstra (list (cons :east start)
-                                                                  (cons :south start)) memory :reachable? #'16-reachable?)
+  (multiple-value-bind (dist prev heap) (aoc-utils:dijkstra (list (make-instance 'state :dir :east :pos start)
+                                                                  (make-instance 'state :dir :south :pos start)) memory :reachable? #'16-reachable?)
     (declare (ignore heap))
     (multiple-value-bind (min-state min-score)
-        (aoc-utils:min-score-state (loop for dir in *cardinals* collect (cons dir end)) dist)
+        (aoc-utils:min-score-state (loop for dir in *cardinals* collect (make-instance 'state :dir dir :pos end)) dist)
       (values min-score min-state))))
 
 (defun day-18-part-1 (input-file &optional (nbytes 1024))
