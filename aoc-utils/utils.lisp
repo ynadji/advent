@@ -502,14 +502,18 @@ based on TEST."
 ;; a (X Y DIR) key as well.
 
 ;;; dijkstra stuff
-(defun initialize-dist (maze &optional (non-states '(#\#)))
-  (let ((dist (make-hash-table :test #'state= :size (array-total-size maze))))
+;; just make DIST the 3D array!
+(defun initialize-dist (maze &optional (class 'state) (non-states '(#\#)))
+  (let ((dist (make-hash-table :test #'state= :size (array-total-size maze)))
+        (arr (make-array (append (array-dimensions maze) '(4)) :initial-element nil)))
     (loop for i below (array-dimension maze 0) do
       (loop for j below (array-dimension maze 1) do
-        (loop for dir in *cardinals* do
+        (loop for k from 0 for dir in *cardinals* do
           (unless (member (aref maze i j) non-states)
-            (setf (gethash (make-instance 'state :dir dir :pos (cons i j)) dist) most-positive-fixnum)))))
-    dist))
+            (let ((state (make-instance class :dir dir :pos (cons i j))))
+              (setf (gethash state dist) most-positive-fixnum)
+              (setf (aref arr i j k) state))))))
+    (values dist arr)))
 
 ;; TODO: subclass cl-heap:fibonacci-heap to also track HEAP-MAP internally so
 ;; you can just do decrease-key directly with whatever you're storing.
@@ -534,6 +538,12 @@ based on TEST."
             do (setf min-state state min-score state-score))
     (values min-state min-score)))
 
+(defun walk-back (prev state start-state)
+  (if (state-pos= state start-state)
+      (cons start-state nil)
+      (let ((next-states (gethash state prev)))
+        (loop for next-state in next-states append (cons state (walk-back prev next-state start-state))))))
+
 ;; speedup ideas:
 ;;
 ;; slowdown is in dijkstra, primarily due to generic dispatch slowdown/hashmaps
@@ -553,7 +563,8 @@ based on TEST."
 ;; TODO: states need to include metadata to solve day 17, 2023
 (defclass state ()
   ((pos :accessor pos :initarg :pos)
-   (dir :accessor dir :initarg :dir)))
+   (dir :accessor dir :initarg :dir)
+   (cost :accessor cost :initarg :cost :initform most-positive-fixnum)))
 
 (defmethod print-object ((state state) out)
   (print-unreadable-object (state out :type t)
@@ -580,12 +591,21 @@ based on TEST."
     (loop for x in seq do (setf (gethash x ht) t)
           finally (return (ax:hash-table-keys ht)))))
 
-(defun neighbor-states (grid pos
-                        &key
-                          (reachable? (lambda (M pos dir) (declare (ignorable M pos dir)) t)))
-  (multiple-value-bind (poses dirs) (2d-neighbors grid pos :reachable? reachable?)
+(defgeneric neighbor-states% (grid pos reachable? wanted-directions))
+
+(defmethod neighbor-states% (grid (pos cons) reachable? wanted-directions)
+  (multiple-value-bind (poses dirs) (2d-neighbors grid pos :reachable? reachable? :wanted-directions wanted-directions)
     (loop for pos in poses for dir in dirs
           collect (make-instance 'state :pos pos :dir dir))))
+
+(defmethod neighbor-states% (grid (state state) reachable? wanted-directions)
+  (neighbor-states% grid (pos state) reachable? wanted-directions))
+
+(defun neighbor-states (grid pos
+                        &key
+                          (reachable? (lambda (M pos dir) (declare (ignorable M pos dir)) t))
+                          (wanted-directions *cardinals/deltas*))
+  (neighbor-states% grid pos reachable? wanted-directions))
 
 ;; REACHABLE? should just take the GRID and STATE. This way. the function isn't so specific to POS and DIR. does this
 ;; mean we'll be spending a bunch of time making new states? How do we generically make states though??
@@ -595,17 +615,27 @@ based on TEST."
                                           1))
                                (reachable? (lambda (M pos dir) (declare (ignorable M pos dir)) t)))
   "Run dijkstra's algorithm on graph represented by MAZE starting at any of the states in STARTS. States are represented as (DIRECTION (I . J)) where DIRECTION is one of the cardinal directions. COST-FN defines the cost based on the previous and current state. REACHABLE? return a truthy value if a state is reachable based on the grid (M) POS and DIR."
-  (let* ((dist (initialize-dist maze))
+  (let* ((dist (initialize-dist maze (class-of (first starts))))
          (prev (make-hash-table :test #'state=)))
     (loop for start in starts do (setf (gethash start dist) 0))
     (multiple-value-bind (heap heap-map) (make-heap dist)
       (loop for state = (cl-heap:pop-heap heap)
             while state
-            for new-states = (neighbor-states maze (pos state) :reachable? reachable?)
-            do (loop for new-state in new-states
+            ;; so NEIGHBOR-STATES really needs to return the values in DIST,
+            ;; which should be shared with those in HEAP-MAP. this kinda defeats
+            ;; the purpose of having a state class though, no? Or like, a func
+            ;; GET-OR-MAKE-STATE that returns an existing state obj or creates
+            ;; one if it doesn't exist? could be backed by by a 3d array, where
+            ;; the dimensions are i, j, k where k in (0 1 2 3) which maps to
+            ;; (:north :east :south :west).
+            for new-states = (neighbor-states maze state :reachable? reachable?)
+            do 
+               (loop for new-state in new-states
                      for new-dir = (dir new-state)
                      for new-cost = (funcall cost-fn state new-state)
-                     do (let ((alt (+ (gethash state dist) new-cost)))
+                     do ;;(format t "trying ~a -> ~a (~a)~%" state new-state new-cost)
+                        ;; how can i update the KEY of a hash-table?
+                        (let ((alt (+ (gethash state dist) new-cost)))
                           (when (< alt (gethash new-state dist))
                             (cl-heap:decrease-key heap (gethash new-state heap-map) alt)
                             (setf (gethash new-state dist) alt)
