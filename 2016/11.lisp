@@ -1,5 +1,7 @@
 (in-package :aoc2016)
 
+;; bfs & prune ugh.
+
 (defun day-11-part-1 (input-file) (progn input-file -1))
 
 (defun day-11-part-2 (input-file) (progn input-file -1))

@@ -25,14 +25,14 @@
 (defun not-number? (c) (not (number? c)))
 
 (defun symbol-neighbors (A i j)
-  (->> (2d-neighbors A (cons i j) :wanted-directions *8-winds*)
+  (->> (2d-neighbors A (cons i j) :wanted-directions *8-winds/deltas*)
     (mapcar #'(lambda (ij) (aref A (car ij) (cdr ij))))))
 
 (defun symbol-neighbors? (A i j)
   (some #'symbol? (symbol-neighbors A i j)))
 
 (defun gear-neighbors-pos (A i j)
-  (->> (2d-neighbors A (cons i j) :wanted-directions *8-winds*)
+  (->> (2d-neighbors A (cons i j) :wanted-directions *8-winds/deltas*)
     (mapcar #'(lambda (ij) (cons ij (aref A (car ij) (cdr ij)))))
     (remove-if-not (lambda (x) (eq #\* (cdr x))))
     (mapcar #'first)))
@@ -85,5 +85,5 @@
               (apply #'+)))))
 
 (defun day-03 ()
-  (let ((f #p"3-input.txt"))
+  (let ((f (fetch-day-input-file 2023 3)))
     (solve-day-03 f)))

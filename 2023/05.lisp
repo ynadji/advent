@@ -116,6 +116,6 @@
 ;; ideas for speedups:
 ;; - range split: https://www.reddit.com/r/adventofcode/comments/18b560a/2023_day_5_part_2_cpu_goes_brrr/kc4dbhq/
 (defun day-05 ()
-  (let ((f #p"5-input.txt"))
+  (let ((f (fetch-day-input-file 2023 5)))
     (values (day-05-part-1 f)
             (day-05-part-2 f))))

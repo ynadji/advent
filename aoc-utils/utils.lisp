@@ -114,8 +114,8 @@ a unique identifier that maps X to a unique, increasing integer."
 (defun define-aoc-day (year day)
   (format nil *day-template* year day day day year day day day))
 
-(defun make-aoc-project (year)
-  (loop for day from 1 upto 25 do
+(defun make-aoc-project (year &optional (num-days 12))
+  (loop for day from 1 upto num-days do
     (let ((fname (format nil "~2,'0d.lisp" day)))
       (when (-> fname probe-file not)
         (with-open-file (out fname :direction :output :if-does-not-exist :create)

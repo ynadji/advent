@@ -44,6 +44,6 @@
           sum (day-02-part-2-aux line))))
 
 (defun day-02 ()
-  (let ((f #p"2-input.txt"))
+  (let ((f (fetch-day-input-file 2023 2)))
     (values (day-02-part-1 f)
             (day-02-part-2 f))))

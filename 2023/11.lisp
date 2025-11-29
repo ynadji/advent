@@ -77,6 +77,6 @@ respectively, that would need to be enlarged because they have no galaxies."
       (sum-min-distances galaxy-positions :xints xints :yints yints :expansion-factor 999999))))
 
 (defun day-11 ()
-  (let ((f #p"11-input.txt"))
+  (let ((f (fetch-day-input-file 2023 11)))
     (values (day-11-part-1 f)
             (day-11-part-2 f))))

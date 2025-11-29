@@ -70,6 +70,6 @@
     (sum-pivots-smudge mirrors)))
 
 (defun day-13 ()
-  (let ((f #p"13-input.txt"))
+  (let ((f (fetch-day-input-file 2023 13)))
     (values (day-13-part-1 f)
             (day-13-part-2 f))))

@@ -32,6 +32,6 @@
     (ways-to-beat time distance)))
 
 (defun day-06 ()
-  (let ((f #p"6-input.txt"))
+  (let ((f (fetch-day-input-file 2023 6)))
     (values (day-06-part-1 f)
             (day-06-part-2 f))))
