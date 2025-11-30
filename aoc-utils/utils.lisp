@@ -303,8 +303,8 @@ anything that is EQL inside the GRID will work (i.e., integers)."
 ;; this will likely be a bottleneck. how can i make it faster?
 ;; i can probably define a compiler macro for this: https://www.lispworks.com/documentation/HyperSpec/Body/m_define.htm
 ;;
-;; since we typically know the values of WANTED-DIRECTIONS at run-time. also uhh
-;; why are using *8-winds... et al. instead of just the WANTED-DIRECTIONS?
+;; since we typically know the values of WANTED-DIRECTIONS at run-time.
+;; WANTED-DIRECTIONS is a bad name since it expects the /DELTAS variant.
 (defun 2d-neighbors (M pos &key (reachable? (lambda (M pos dir) (declare (ignorable M pos dir)) t))
                              (wanted-directions *cardinals/deltas*))
   (declare (type (compiled-function) reachable?)
@@ -594,9 +594,9 @@ based on TEST."
 (defgeneric neighbor-states% (grid pos reachable? wanted-directions))
 
 (defmethod neighbor-states% (grid (pos cons) reachable? wanted-directions)
-  (multiple-value-bind (poses dirs) (2d-neighbors grid pos :reachable? reachable? :wanted-directions wanted-directions)
+  (multiple-value-bind (poses dirs) (2d-neighbors (grid grid) pos :reachable? reachable? :wanted-directions wanted-directions)
     (loop for pos in poses for dir in dirs
-          collect (make-instance 'state :pos pos :dir dir))))
+          collect (aref (state-grid grid) (car pos) (cdr pos) (position dir wanted-directions :key #'first)))))
 
 (defmethod neighbor-states% (grid (state state) reachable? wanted-directions)
   (neighbor-states% grid (pos state) reachable? wanted-directions))
@@ -607,42 +607,79 @@ based on TEST."
                           (wanted-directions *cardinals/deltas*))
   (neighbor-states% grid pos reachable? wanted-directions))
 
+(defclass algo-grid ()
+  ((grid :accessor grid :initarg :grid :initform (error "Must provide GRID to initialize ALGO-GRID."))
+   (state-class :accessor state-class :initarg :state-class :initform (error "Must provide STATE-CLASS to initialize ALGO-GRID."))
+   (state-grid :accessor state-grid)
+   (non-states :accessor non-states :initarg :non-states :initform '(#\#)
+               :documentation "Grid entries that do not need a state represetation."))
+  (:documentation "Base class for maintaining state for running algorithms on grids."))
+
+(defmethod initialize-instance :after ((grid algo-grid) &key)
+  (with-slots (grid state-class non-states state-grid) grid
+    (setf state-grid (make-array (append (array-dimensions grid) '(4)) :initial-element nil))
+    (loop for i below (array-dimension grid 0) do
+      (loop for j below (array-dimension grid 1) do
+        (loop for k from 0 for dir in *cardinals* do
+          (unless (member (aref grid i j) non-states)
+            (let ((state (make-instance state-class :dir dir :pos (cons i j))))
+              (setf (aref state-grid i j k) state)))))))
+  grid)
+
+(defclass dijkstra-grid (algo-grid)
+  ((starts :accessor starts :initarg :starts :initform (error "Must provide STARTS to initialize DIJKSTRA-GRID."))
+   (dist :accessor dist :initform (make-hash-table :test #'state=))
+   (prev :accessor prev :initform (make-hash-table :test #'state=))
+   (heap :accessor heap :initform nil)
+   (heap-map :accessor heap-map :initform nil))
+  (:documentation "Dijkstra algorithm grid."))
+
+(defmethod initialize-instance :after ((grid dijkstra-grid) &key)
+  (with-slots (state-grid dist prev heap heap-map starts) grid
+    (loop for i below (array-dimension state-grid 0) do
+      (loop for j below (array-dimension state-grid 1) do
+        (loop for k below (array-dimension state-grid 2) do
+          (ax:when-let ((state (aref state-grid i j k)))
+            (setf (gethash state dist) most-positive-fixnum)))))
+    (loop for start in starts do (setf (gethash start dist) 0))
+    (multiple-value-bind (tmp-heap tmp-heap-map) (make-heap dist)
+      (setf heap tmp-heap heap-map tmp-heap-map)))
+  grid)
+
 ;; REACHABLE? should just take the GRID and STATE. This way. the function isn't so specific to POS and DIR. does this
 ;; mean we'll be spending a bunch of time making new states? How do we generically make states though??
 (defun dijkstra (starts maze &key
                                (cost-fn (lambda (s0 s1)
                                           (declare (ignore s0 s1))
                                           1))
-                               (reachable? (lambda (M pos dir) (declare (ignorable M pos dir)) t)))
+                               (reachable? (lambda (M pos dir) (declare (ignorable M pos dir)) t))
+                               (state-class 'state))
   "Run dijkstra's algorithm on graph represented by MAZE starting at any of the states in STARTS. States are represented as (DIRECTION (I . J)) where DIRECTION is one of the cardinal directions. COST-FN defines the cost based on the previous and current state. REACHABLE? return a truthy value if a state is reachable based on the grid (M) POS and DIR."
-  (let* ((dist (initialize-dist maze (class-of (first starts))))
-         (prev (make-hash-table :test #'state=)))
-    (loop for start in starts do (setf (gethash start dist) 0))
-    (multiple-value-bind (heap heap-map) (make-heap dist)
-      (loop for state = (cl-heap:pop-heap heap)
-            while state
-            ;; so NEIGHBOR-STATES really needs to return the values in DIST,
-            ;; which should be shared with those in HEAP-MAP. this kinda defeats
-            ;; the purpose of having a state class though, no? Or like, a func
-            ;; GET-OR-MAKE-STATE that returns an existing state obj or creates
-            ;; one if it doesn't exist? could be backed by by a 3d array, where
-            ;; the dimensions are i, j, k where k in (0 1 2 3) which maps to
-            ;; (:north :east :south :west).
-            for new-states = (neighbor-states maze state :reachable? reachable?)
-            do 
-               (loop for new-state in new-states
-                     for new-dir = (dir new-state)
-                     for new-cost = (funcall cost-fn state new-state)
-                     do ;;(format t "trying ~a -> ~a (~a)~%" state new-state new-cost)
-                        ;; how can i update the KEY of a hash-table?
-                        (let ((alt (+ (gethash state dist) new-cost)))
-                          (when (< alt (gethash new-state dist))
-                            (cl-heap:decrease-key heap (gethash new-state heap-map) alt)
-                            (setf (gethash new-state dist) alt)
-                            (setf (gethash new-state prev) (list state)))
-                          (when (= alt (gethash new-state dist))
-                            (pushnew state (gethash new-state prev) :test #'state=)))))
-      (values dist prev heap))))
+  (let ((grid (make-instance 'dijkstra-grid :grid maze :state-class state-class :starts starts)))
+    (with-slots (dist prev heap heap-map) grid
+      (multiple-value-bind (heap heap-map) (make-heap dist)
+        (loop for state = (cl-heap:pop-heap heap)
+              while state
+              ;; so NEIGHBOR-STATES really needs to return the values in DIST,
+              ;; which should be shared with those in HEAP-MAP. this kinda defeats
+              ;; the purpose of having a state class though, no? Or like, a func
+              ;; GET-OR-MAKE-STATE that returns an existing state obj or creates
+              ;; one if it doesn't exist? could be backed by by a 3d array, where
+              ;; the dimensions are i, j, k where k in (0 1 2 3) which maps to
+              ;; (:north :east :south :west).
+              for new-states = (neighbor-states grid state :reachable? reachable?)
+              do 
+                 (loop for new-state in new-states
+                       for new-dir = (dir new-state)
+                       for new-cost = (funcall cost-fn state new-state)
+                       do (let ((alt (+ (gethash state dist) new-cost)))
+                            (when (< alt (gethash new-state dist))
+                              (cl-heap:decrease-key heap (gethash new-state heap-map) alt)
+                              (setf (gethash new-state dist) alt)
+                              (setf (gethash new-state prev) (list state)))
+                            (when (= alt (gethash new-state dist))
+                              (pushnew state (gethash new-state prev) :test #'state=)))))
+        (values dist prev heap)))))
 
 ;; export all symbols
 (let ((pack (find-package :aoc-utils)))

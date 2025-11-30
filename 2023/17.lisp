@@ -27,7 +27,7 @@
              states))
 
 (defmethod aoc-utils::neighbor-states% (grid (stepper stepper) reachable? wanted-directions)
-  (let ((next-states (mapcar (lambda (c) (change-class c 'stepper)) (call-next-method)))
+  (let ((next-states (call-next-method))
         (last-dir (dir stepper))
         (last-steps (steps stepper)))
     (loop for state in next-states
@@ -42,14 +42,19 @@
            (declare (ignore s0))
            (paref maze (pos s1))))
     (let ((starts (list (make-instance 'stepper :dir :none :pos '(0 . 0)))))
-      (let ((dist (dijkstra starts maze :cost-fn #'cost-fn))
-            (bottom-right (destructuring-bind (i j)
-                              (mapcar #'1- (array-dimensions maze))
-                            (cons i j))))
-        (loop for dir in *cardinals* minimize
-              (gethash (make-instance 'stepper :dir dir :pos bottom-right) dist))))))
+      (multiple-value-bind (dist prev) (dijkstra starts maze :cost-fn #'cost-fn :state-class 'stepper)
+        (let ((bottom-right (destructuring-bind (i j)
+                                (mapcar #'1- (array-dimensions maze))
+                              (cons i j))))
+          (print-grid maze
+                      :pos-color-alist (loop for state in (walk-back prev
+                                                                     (make-instance 'stepper :dir :east :pos bottom-right)
+                                                                     (make-instance 'stepper :dir :east :pos '(0 . 0)))
+                                             collect (cons (pos state) :green)))
+          (loop for dir in *cardinals* minimize
+                                       (gethash (make-instance 'stepper :dir dir :pos bottom-right) dist)))))))
 
-(defun day-17-part-1 (input-file) (progn input-file -1))
+(defun day-17-part-1 (input-file) (day-17% (read-grid input-file :element-type 'fixnum)))
 
 (defun day-17-part-2 (input-file) (progn input-file -1))
 
