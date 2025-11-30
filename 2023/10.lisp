@@ -1,5 +1,7 @@
 (in-package :aoc2023)
 
+(declaim (optimize debug))
+
 (defun connections (c)
   "Returns valid exit cardinal directions for a pipe. S is basically a wildcard so
 all directions are valid."
@@ -48,7 +50,7 @@ to. E.g., a #\7 connects due :west and :south. It can only connect with pipe
 pieces that connect :east or :north, respectively. The one exception is #\S,
 which can connect to any other pipe piece. #\. have no exits, so cannot connect
 to any pipe piece."
-  (2d-neighbors maze pos :wanted-directions (exits maze pos)
+  (2d-neighbors maze pos :wanted-directions (apply #'directions->deltas (exits maze pos))
                          :reachable? #'accepts-from))
 
 (defun next-pos (maze pos prev-pos)
@@ -124,6 +126,6 @@ in SLIME."
       (picks-theorem (shoelace cycle) (length cycle)))))
 
 (defun day-10 ()
-  (let ((f #p"10-input.txt"))
+  (let ((f (fetch-day-input-file 2023 10)))
     (values (day-10-part-1 f)
             (day-10-part-2 f))))

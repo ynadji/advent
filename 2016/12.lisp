@@ -1,5 +1,7 @@
 (in-package :aoc2016)
 
+;; can i compile this somehow??
+
 (defparameter test-input "cpy 41 a
 inc a
 inc a

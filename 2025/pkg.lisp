@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage :aoc2024
+(defpackage :aoc2025
   (:use :cl :arrow-macros :aoc-utils)
   (:local-nicknames (:g :cl-graph)
                     (:ax :alexandria))
@@ -15,18 +15,5 @@
            :day-10
            :day-11
            :day-12
-           :day-13
-           :day-14
-           :day-15
-           :day-16
-           :day-17
-           :day-18
-           :day-19
-           :day-20
-           :day-21
-           :day-22
-           :day-23
-           :day-24
-           :day-25
            :symb
            :group))

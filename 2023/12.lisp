@@ -67,7 +67,7 @@
           sum (the integer (find-all-possible-arrangements spring nums)))))
 
 (defun day-12 ()
-  (let ((f #p"12-input.txt"))
+  (let ((f (fetch-day-input-file 2023 12)))
     (values (day-12-part-1 f)
             157383940585037; (day-11-part-2 f) ; too slow for tests for now :(
             )))

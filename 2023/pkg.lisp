@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage :aoc2023
-  (:use :cl :arrow-macros)
+  (:use :cl :arrow-macros :aoc-utils)
   (:local-nicknames (:g :cl-graph)
                     (:ax :alexandria))
   (:export :day-01

@@ -30,7 +30,7 @@
              (pos-dir (cons curr-pos dir)))
         (when (not (gethash pos-dir visited))
           (setf (gethash pos-dir visited) t)
-          (multiple-value-bind (next-positions next-directions) (2d-neighbors grid curr-pos :wanted-directions (list dir))
+          (multiple-value-bind (next-positions next-directions) (2d-neighbors grid curr-pos :wanted-directions (list (nth-value 1 (direction->delta dir))))
             (loop for np in next-positions for nds in next-directions
                   ;; NEXT-DIRECTIONS can return multiple values, e.g., from
                   ;; #\- and #\| splitters.

@@ -47,6 +47,6 @@
                            starts)))))
 
 (defun day-08 ()
-  (let ((f #p"8-input.txt"))
+  (let ((f (fetch-day-input-file 2023 8)))
     (values (day-08-part-1 f)
             (day-08-part-2 f))))

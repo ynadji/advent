@@ -26,45 +26,6 @@
 1,6
 2,0")
 
-;; speedup ideas:
-;;
-;; slowdown is in dijkstra, primarily due to generic dispatch slowdown/hashmaps
-;; (i think). we could probably speed that up in general by re-using the
-;; hash-tables where possible and just (CLRHASHing) in between. would have to
-;; make disjkstra work with empty hash-tables (i.e., gethash on dist default to
-;; MOST-POSITIVE-FIXNUM. this would lead to speedups in general and maybe makes
-;; sense to do this when you abstract disjktra out.
-;;
-;; Al's suggestion of only redoing dijkstras if our path bordered a byte. he
-;; claims this reduced the checks from ~500 (bruteforce in reverse) to 5. which
-;; took his down from 400ms to 20ms. given i only do 12 in ~450ms this would put
-;; me at ~190 if the improvements were the same. as of day 18, that would get me
-;; close to the 1s barrier, but probably not below it.
-;;
-
-(defun dijkstra2 (starts maze)
-  (let* ((dist (initialize-dist maze))
-         (prev (make-hash-table :test #'equal)))
-    (loop for start in starts do (setf (gethash start dist) 0))
-    (multiple-value-bind (heap heap-map) (make-heap dist)
-      (loop for state = (cl-heap:pop-heap heap)
-            while state
-            for dir = (car state)
-            for (new-states new-dirs) = (multiple-value-list (2d-neighbors maze (cdr state)
-                                                                           :reachable? #'16-reachable?))
-            do (loop for new-state in (mapcar #'cons new-dirs new-states)
-                     for new-dir = (car new-state)
-                     for new-cost = 1
-                     do ;;(format t "~a -> ~a~%" state new-state)
-                        (let ((alt (+ (gethash state dist) new-cost)))
-                          (when (< alt (gethash new-state dist))
-                            (cl-heap:decrease-key heap (gethash new-state heap-map) alt)
-                            (setf (gethash new-state dist) alt)
-                            (setf (gethash new-state prev) (list state)))
-                          (when (= alt (gethash new-state dist))
-                            (pushnew state (gethash new-state prev))))))
-      (values dist prev heap))))
-
 (defun reset-memory (memory bytes nbytes &optional fresh?)
   (unless fresh?
     (loop for i below (array-total-size memory)
@@ -81,11 +42,11 @@
     (values memory bytes)))
 
 (defun find-shortest-path-score (memory start end)
-  (multiple-value-bind (dist prev heap) (dijkstra2 (list (cons :east start)
-                                                         (cons :south start)) memory)
+  (multiple-value-bind (dist prev heap) (aoc-utils:dijkstra (list (make-instance 'state :dir :east :pos start)
+                                                                  (make-instance 'state :dir :south :pos start)) memory :reachable? #'16-reachable?)
     (declare (ignore heap))
     (multiple-value-bind (min-state min-score)
-        (min-score-state (loop for dir in *cardinals* collect (cons dir end)) dist)
+        (aoc-utils:min-score-state (loop for dir in *cardinals* collect (make-instance 'state :dir dir :pos end)) dist)
       (values min-score min-state))))
 
 (defun day-18-part-1 (input-file &optional (nbytes 1024))
