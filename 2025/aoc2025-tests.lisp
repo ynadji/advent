@@ -28,7 +28,7 @@
                                     (is (equal res1 ,expect1))
                                     (is (equal res2 ,expect2))))))))
 
-(make-aoc-tests (;(1 0 0)
+(make-aoc-tests ((1 1081 6689)
                  ;(2 0 0)
                  ;(3 0 0)
                  ;(4 0 0)
