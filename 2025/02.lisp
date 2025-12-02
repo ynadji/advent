@@ -16,6 +16,35 @@
                                always (equal x y))
                          (or part2? (evenp (length groups)))))))
 
+(defun decompose-id (id i part1? acc)
+  (declare (optimize speed (safety 0))
+           (type fixnum id i))
+  (if part1?
+      (multiple-value-list (the fixnum (floor id i)))
+      (if (zerop id)
+          acc
+          (multiple-value-bind (quot rem) (the fixnum (floor id i))
+            (decompose-id quot i part1? (cons rem acc))))))
+
+(defun invalid-id-math? (id part1?)
+  (declare (optimize speed)
+           (type fixnum id))
+  (let ((num-id-digits (the fixnum (num-digits id))))
+    (loop for i fixnum from 1 repeat num-id-digits
+          for parts = (decompose-id id (the fixnum (expt 10 i)) part1? nil)
+            thereis (and (apply #'= parts)
+                         (or part1? (>= (length parts) 2))
+                         (= (the fixnum (apply #'+ (mapcar #'num-digits parts)))
+                            num-id-digits)
+                         ))))
+
+(defun day-02%% (input-file &optional part1?)
+  (let ((id-ranges (parse-id-ranges input-file)))
+    (loop for (start end) in id-ranges
+          sum (loop for id from start upto end
+                    when (invalid-id-math? id part1?)
+                      sum id))))
+
 (defun day-02% (input-file &optional part2?)
   (let ((id-ranges (parse-id-ranges input-file)))
     (loop for (start end) in id-ranges
@@ -25,5 +54,5 @@
 
 (defun day-02 ()
   (let ((f (fetch-day-input-file 2025 2)))
-    (values (day-02% f)
-            (day-02% f t))))
+    (values (day-02%% f t)
+            (day-02%% f))))
