@@ -18,7 +18,7 @@
   (flet ((paper-roll?% (pos)
            (paper-roll? grid (car pos) (cdr pos))))
     (let ((neighbors (2d-neighbors grid (cons i j) :wanted-directions *8-winds/deltas*)))
-      (length (remove-if-not #'paper-roll?% neighbors)))))
+      (count-if #'paper-roll?% neighbors))))
 
 (defun count-rolls (grid &optional remove?)
   (loop for i below (array-dimension grid 0)
