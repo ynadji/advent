@@ -34,13 +34,10 @@
         while (plusp num-removed)
         sum num-removed))
 
-(defun day-04-part-1 (input-file)
-  (count-rolls (read-grid input-file)))
-
-(defun day-04-part-2 (input-file)
-  (repeatedly-count-rolls (read-grid input-file)))
+(defun day-04% (input-file count-fun)
+  (funcall count-fun (read-grid input-file)))
 
 (defun day-04 ()
   (let ((f (fetch-day-input-file 2025 4)))
-    (values (day-04-part-1 f)
-            (day-04-part-2 f))))
+    (values (day-04% f #'count-rolls)
+            (day-04% f #'repeatedly-count-rolls))))
