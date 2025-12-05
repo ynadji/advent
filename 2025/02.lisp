@@ -13,20 +13,20 @@
     (when (evenp num-digits-id)
       (zerop (mod id (1+ (expt 10 (/ (num-digits id) 2))))))))
 
-(defun generate-invalids ()
-  (flet ((repeat-int (s k)
-           (loop repeat (1- s) with repeated = k with length = (num-digits k)
-                 do (setf repeated (+ (* repeated (expt 10 length)) k))
-                 finally (return repeated))))
-    (let (invalids)
-      (loop for n from 1 to 99999
-            do (let* ((length (num-digits n)))
-                 (when (<= 1 length 5)
-                   ;; k from 2 up to floor(10/len), inclusive
-                   (loop for k from 2 to (floor 10 length)
-                         for s = (repeat-int k n)
-                         do (push s invalids)))))
-      (remove-duplicates invalids))))
+(eval-when (:compile-toplevel :load-toplevel)
+  (defun generate-invalids ()
+    (flet ((repeat-int (s k)
+             (loop repeat (1- s) with repeated = k with length = (num-digits k)
+                   do (setf repeated (+ (* repeated (expt 10 length)) k))
+                   finally (return repeated))))
+      (let (invalids)
+        (loop for n from 1 to 99999
+              do (let* ((length (num-digits n)))
+                   (when (<= 1 length 5)
+                     (loop for k from 2 to (floor 10 length)
+                           for s = (repeat-int k n)
+                           do (push s invalids)))))
+        (remove-duplicates invalids)))))
 
 (defun range-check-day-02 (input-file invalids)
   (declare (optimize speed))
@@ -41,5 +41,5 @@
 
 (defun day-02 ()
   (let ((f (fetch-day-input-file 2025 2))
-        (invalids (generate-invalids)))
+        (invalids '#.(generate-invalids)))
     (range-check-day-02 f invalids)))
