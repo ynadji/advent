@@ -67,9 +67,10 @@
       (defparameter *edges* edges)
       (defparameter *ht* ht))))
 
-(defun num-circuits (circuits)
-  (length (fast-remove-duplicates (loop for id from 0 below (length circuits)
-                                        collect (disjoint-sets:disjoint-sets-find circuits id)))))
+(defun one-large-circuit? (circuits)
+  (loop with first-circuit = (disjoint-sets:disjoint-sets-find circuits 0)
+        for id from 1 below (length circuits)
+        always (= first-circuit (disjoint-sets:disjoint-sets-find circuits id))))
 
 (defun day-08-part-1 (edges ht &optional (num-connections 10))
   (let ((circuits (disjoint-sets:make-disjoint-sets (hash-table-count ht))))
@@ -91,8 +92,7 @@
           for id1 = (coord-jid (edge-c1 edge))
           for id2 = (coord-jid (edge-c2 edge))
           do (disjoint-sets:disjoint-sets-join circuits id1 id2)
-          when (= 1 (num-circuits circuits))
-            ;;when (= i 5243)
+          when (one-large-circuit? circuits)
             return (* (coord-x (edge-c1 edge))
                       (coord-x (edge-c2 edge))))))
 
