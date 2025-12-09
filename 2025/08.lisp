@@ -27,8 +27,8 @@
            (expt (- z2 z1) 2))))
 
 (defun read-coordinates (input-file)
-  (loop for line in (uiop:read-file-lines input-file)
-        collect (string-to-num-list line)))
+  (coerce (loop for line in (uiop:read-file-lines input-file)
+                collect (string-to-num-list line)) 'vector))
 
 (defmacro gethash-or-set-default (key ht default)
   (ax:with-gensyms (val)
@@ -49,12 +49,14 @@
         edges)
     (flet ((seen-edge? (id1 id2)
              (gethash (cons (min id1 id2) (max id1 id2)) seen)))
-      (loop for (x1 y1 z1) in coordinates for id1 from 0
-            append (loop for (x2 y2 z2) in coordinates for id2 from 0
-                         unless (or (= id1 id2) (seen-edge? id1 id2))
-                           do (setf (gethash (cons (min id1 id2) (max id1 id2)) seen) t)
-                              (push (make-edge :c1 (gethash-or-set-default id1 ht (make-coord :x x1 :y y1 :z z1 :jid id1))
-                                               :c2 (gethash-or-set-default id2 ht (make-coord :x x2 :y y2 :z z2 :jid id2))
+      (loop for i below (length coordinates)
+            for (x1 y1 z1) = (aref coordinates i)
+            append (loop for j from (1+ i) below (length coordinates)
+                         for (x2 y2 z2) = (aref coordinates j)
+                         unless (or (= i j) (seen-edge? i j))
+                           do (setf (gethash (cons (min i j) (max i j)) seen) t)
+                              (push (make-edge :c1 (gethash-or-set-default i ht (make-coord :x x1 :y y1 :z z1 :jid i))
+                                               :c2 (gethash-or-set-default j ht (make-coord :x x2 :y y2 :z z2 :jid j))
                                                :distance (euclidean-distance x1 y1 z1 x2 y2 z2))
                                     edges)))
       (values (sort edges #'< :key #'edge-distance) ht))))
