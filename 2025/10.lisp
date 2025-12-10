@@ -42,22 +42,9 @@
   (mapcar #'parse-machine (uiop:read-file-lines input-file)))
 
 (defun minimum-presses (machine)
-  (let ((q (queues:make-queue :simple-queue))
-        (seen (make-hash-table)))
-    (loop for button in (buttons machine)
-          ;; assumes at least one button press must be done, which holds for my input.
-          do (queues:qpush q (list 0 1 button)))
-    (setf (gethash 0 seen) t)
-    (loop while (plusp (queues:qsize q))
-          for (prev-lights n button) = (queues:qpop q)
-          for lights = (logxor prev-lights button)
-          when (= lights (goal machine))
-            ;;do #+or(room) #+or(format t "~a~%" (queues:qsize q)) and
-            return n
-          unless (gethash lights seen)
-            do (loop for next-button in (buttons machine)
-                     unless (= button next-button)
-                       do (queues:qpush q (list lights (1+ n) next-button))))))
+  (loop for button-set in (sort (powerset (buttons machine)) #'< :key #'length)
+        when (= (goal machine) (apply #'logxor 0 button-set))
+          return (length button-set)))
 
 (defun day-10-part-1 (input-file)
   (let ((machines (parse-machines input-file)))
