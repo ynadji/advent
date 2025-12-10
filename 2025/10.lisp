@@ -52,8 +52,9 @@
             ;;do #+or(room) #+or(format t "~a~%" (queues:qsize q)) and
             return n
           unless (gethash lights seen)
-            do (loop for button in (buttons machine)
-                     do (queues:qpush q (list lights (1+ n) button))))))
+            do (loop for next-button in (buttons machine)
+                     unless (= button next-button)
+                       do (queues:qpush q (list lights (1+ n) next-button))))))
 
 (defun day-10-part-1 (input-file)
   (let ((machines (parse-machines input-file)))
