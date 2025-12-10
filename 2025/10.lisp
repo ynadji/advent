@@ -15,12 +15,6 @@
     (with-slots (goal buttons joltage button-list) m
       (format stream "~a ~a ~a ~a" goal buttons joltage button-list))))
 
-#+or(defun prune-buttons (goal buttons)
-  (let ((light-indices (loop for i from 0 for c across goal when (char= c #\#) collect i)))
-    (loop for pset in (powerset buttons)
-          for flat = (ax:flatten pset)
-          collect flat)))
-
 (defun parse-machine (line)
   (flet ((parse-lights (s)
            (parse-integer (substitute #\0 #\. (substitute #\1 #\# (str:trim s :char-bag '(#\[ #\]))))
@@ -53,19 +47,21 @@
 
 (defun generate-linear-problem (joltage button-list)
   (values `(min (= n (+ ,@(loop for i from 1 for b in button-list collect (symb 'b i)))))
-          (append (loop for jolt in joltage for i from 0
-                        collect
-                        `(= ,jolt
-                            (+ ,@(loop for b from 1 for buttons in button-list
-                                       when (member i buttons)
-                                         collect (symb 'b b)))))
-                  )))
+          `((integer ,@(loop for b from 1 for buttons in button-list collect (symb 'b b)))
+            ,@(loop for jolt in joltage for i from 0
+                    collect
+                    `(= ,jolt
+                        (+ ,@(loop for b from 1 for buttons in button-list
+                                   when (member i buttons)
+                                     collect (symb 'b b))))))))
 
 (defun day-10-part-2 (input-file)
   (let ((machines (parse-machines input-file)))
     (loop for machine in machines
-          for (objective constraints) = (multiple-value-list (generate-linear-problem (joltage machine) (button-list machine)))
-          sum (lp:solution-variable (lp:solve-problem (lp:parse-linear-problem objective (cons (cons 'integer (loop for b from 1 repeat (length (button-list machine)) collect (symb 'b b))) (filter-redundant-constraints constraints)))) 'N))))
+          for (objective constraints) = (multiple-value-list (generate-linear-problem (joltage machine)
+                                                                                      (button-list machine)))
+          for fconstraints = (filter-redundant-constraints constraints)
+          sum (lp:solution-variable (lp:solve-problem (lp:parse-linear-problem objective fconstraints)) 'N))))
 
 (defun day-10 ()
   (let ((f (fetch-day-input-file 2025 10)))
@@ -76,17 +72,15 @@
 
 (defun filter-redundant-constraints (constraints)
   "Returns a list of constraints with linearly dependent (redundant) rows removed."
-  (let* ((parsed (mapcar #'parse-constraint constraints))
-         ;; FIX: Access (second x) because we now use 'list' in parse-constraint
-         (vars (remove-duplicates 
-                (mapcan (lambda (x) (mapcar #'car (second x))) 
-                        (copy-list parsed))
-                :test #'equal))
+  (let* ((parsed (mapcar #'parse-constraint (rest constraints)))
+         ;; Assumes first constraint is (INTEGER B1 ... BN)
+         (vars (rest (first constraints)))
          (matrix (build-matrix parsed vars))
          (independent-indices (find-independent-rows matrix)))
     ;; Return only the original constraints that were marked as independent
-    (loop for i in independent-indices
-          collect (nth i constraints))))
+    (cons (first constraints)
+          (loop for i in independent-indices
+                collect (nth (1+ i) constraints)))))
 
 (defun parse-constraint (c)
   "Parses (= RHS (+ V1 V2 ...)) into (RHS ((V1 . 1) (V2 . 1)...))"
