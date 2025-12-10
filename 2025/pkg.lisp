@@ -2,7 +2,8 @@
 (defpackage :aoc2025
   (:use :cl :arrow-macros :aoc-utils)
   (:local-nicknames (:g :cl-graph)
-                    (:ax :alexandria))
+                    (:ax :alexandria)
+                    (:lp :linear-programming))
   (:export :day-01
            :day-02
            :day-03

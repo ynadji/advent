@@ -3,7 +3,7 @@
   :description "Advent of Code 2025 solutions in Common Lisp"
   :author "Yacin Nadji <ynadji@gmail.com>"
   :license "MIT"
-  :depends-on ("str" "uiop" "alexandria" "function-cache" "serapeum" "drakma" "arrow-macros" "cl-graph" "lparallel" "magicl" "cl-ansi-text" "cl-heap" "btrie" "disjoint-sets" "aoc-utils" "queues" "queues.simple-queue")
+  :depends-on ("str" "uiop" "alexandria" "function-cache" "serapeum" "drakma" "arrow-macros" "cl-graph" "lparallel" "magicl" "cl-ansi-text" "cl-heap" "btrie" "disjoint-sets" "aoc-utils" "queues" "queues.simple-queue" "linear-programming")
   :components ((:file "pkg")
                (:file "01")
                (:file "02")
