@@ -42,19 +42,32 @@
 (defun intersects? (rectangle line)
   (destructuring-bind ((r-left r-top r-right r-bottom)) rectangle
     (destructuring-bind ((lx1 ly1) (lx2 ly2)) line
-      (or (print (<= (max lx1 lx2) (min (first (first r-left)) (second (first r-left)))))
-          (print (>= (min lx1 lx2) (max (first (first r-right)) (second (first r-right)))))
-          (print (<= (max ly1 ly2) (min (first (second r-bottom)) (second (second r-bottom)))))
-          (print (>= (min ly1 ly2) (max (first (second r-top)) (second (second r-top)))))))))
+      (format t "~a ~a ~a ~a~%~%"
+              (<= (max lx1 lx2) (min (first (first r-left)) (first (second r-left))))
+              (>= (min lx1 lx2) (max (first (first r-right)) (first (second r-right))))
+
+              (<= (max ly1 ly2) (min (second (first r-top)) (second (second r-top))))
+              (>= (min ly1 ly2) (max (second (first r-bottom)) (second (second r-bottom)))))
+      (or (<= (max lx1 lx2) (min (first (first r-left)) (first (second r-left))))
+          (>= (min lx1 lx2) (max (first (first r-right)) (first (second r-right))))
+
+          (<= (max ly1 ly2) (min (second (first r-top)) (second (second r-top))))
+          (>= (min ly1 ly2) (max (second (first r-bottom)) (second (second r-bottom))))))))
 
 (defun contains-rectangle? (polygon rectangle)
-  (let ((length (length polygon)))
-    (loop for i below length
-          for p1 = (aref polygon i)
-          for p2 = (aref polygon (mod (1+ i) length))
-          never (intersects? rectangle (list p1 p2)))))
+(let ((length (length polygon)))
+  (loop for i from 0 below length
+        for p1 = (aref polygon i)
+        for p2 = (aref polygon (mod (1+ i) length))
+        do (format t "~a ~a --- ~a~%" p1 p2 rectangle)
+          thereis (intersects? rectangle (list p1 p2)))))
 
-(defun day-09-part-2 (input-file) (progn input-file -1))
+(defun day-09-part-2 (input-file)
+  (let ((polygon (read-red-squares input-file)))
+    (loop for i from 0 below (array-dimension polygon 0)
+          maximize (loop for j from (1+ i) below (array-dimension polygon 0)
+                         when (contains-rectangle? polygon (rectangle-edges (aref polygon i) (aref polygon j)))
+                           maximize (rectangle-area (aref polygon i) (aref polygon j))))))
 
 (defun day-09 ()
   (let ((f (fetch-day-input-file 2025 9)))
