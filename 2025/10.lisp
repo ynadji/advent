@@ -49,9 +49,7 @@
 (defun day-10-part-1 (input-file)
   (let ((machines (parse-machines input-file)))
     (loop for i from 0
-          for machine in machines sum (minimum-presses machine)
-          ;;do (format t "completed machine ~a~%" i)
-          )))
+          for machine in machines sum (minimum-presses machine))))
 
 (defun generate-linear-problem (joltage button-list)
   (values `(min (= n (+ ,@(loop for i from 1 for b in button-list collect (symb 'b i)))))
@@ -67,11 +65,7 @@
   (let ((machines (parse-machines input-file)))
     (loop for machine in machines
           for (objective constraints) = (multiple-value-list (generate-linear-problem (joltage machine) (button-list machine)))
-          ;;do (format t "~a~%~a~%~a~%~%" machine objective constraints)
-          ;;for solution = (lp:solve-problem (lp:parse-linear-problem objective constraints))
-          sum (lp:solution-variable (lp:solve-problem (lp:parse-linear-problem objective (cons (cons 'integer (loop for b from 1 repeat (length (button-list machine)) collect (symb 'b b))) (filter-redundant-constraints constraints)))) 'N)
-          ;;sum (lp:solution-variable solution 'N)
-          )))
+          sum (lp:solution-variable (lp:solve-problem (lp:parse-linear-problem objective (cons (cons 'integer (loop for b from 1 repeat (length (button-list machine)) collect (symb 'b b))) (filter-redundant-constraints constraints)))) 'N))))
 
 (defun day-10 ()
   (let ((f (fetch-day-input-file 2025 10)))

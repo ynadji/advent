@@ -26,47 +26,34 @@
           maximize (loop for j from (1+ i) below (array-dimension points 0)
                          maximize (rectangle-area (aref points i) (aref points j))))))
 
-(defun rectangle-edges (p1 p2)
-  (destructuring-bind (x1 y1) p1
-    (destructuring-bind (x2 y2) p2
-      (let ((min-x (min x1 x2))
-            (min-y (min y1 y2))
-            (max-x (max x1 x2))
-            (max-y (max y1 y2)))
-        (list `(((,min-x ,max-y) (,min-x ,min-y)) ; left
-                ((,min-x ,min-y) (,max-x ,min-y)) ; top
-                ((,max-x ,min-y) (,max-x ,max-y)) ; right
-                ;; bottom
-                ((,max-x ,max-y) (,min-x ,max-y))))))))
+(declaim (inline line-doesnt-intersect-rectangle?))
+(defun line-doesnt-intersect-rectangle? (line p1 p2)
+  (declare (optimize speed))
+  (let* ((lx (the fixnum (first (first line))))
+         (ly (the fixnum (second (first line))))
+         (lx-prime (the fixnum (first (second line))))
+         (ly-prime (the fixnum (second (second line))))
+         (x (the fixnum (first p1)))
+         (y (the fixnum (second p1)))
+         (x-prime (the fixnum (first p2)))
+         (y-prime (the fixnum (second p2))))
+    (or (<= (max lx lx-prime) (min x x-prime))
+        (>= (min lx lx-prime) (max x x-prime))
+        (<= (max ly ly-prime) (min y y-prime))
+        (>= (min ly ly-prime) (max y y-prime)))))
 
-(defun intersects? (rectangle line)
-  (destructuring-bind ((r-left r-top r-right r-bottom)) rectangle
-    (destructuring-bind ((lx1 ly1) (lx2 ly2)) line
-      (format t "~a ~a ~a ~a~%~%"
-              (<= (max lx1 lx2) (min (first (first r-left)) (first (second r-left))))
-              (>= (min lx1 lx2) (max (first (first r-right)) (first (second r-right))))
-
-              (<= (max ly1 ly2) (min (second (first r-top)) (second (second r-top))))
-              (>= (min ly1 ly2) (max (second (first r-bottom)) (second (second r-bottom)))))
-      (or (<= (max lx1 lx2) (min (first (first r-left)) (first (second r-left))))
-          (>= (min lx1 lx2) (max (first (first r-right)) (first (second r-right))))
-
-          (<= (max ly1 ly2) (min (second (first r-top)) (second (second r-top))))
-          (>= (min ly1 ly2) (max (second (first r-bottom)) (second (second r-bottom))))))))
-
-(defun contains-rectangle? (polygon rectangle)
-(let ((length (length polygon)))
-  (loop for i from 0 below length
-        for p1 = (aref polygon i)
-        for p2 = (aref polygon (mod (1+ i) length))
-        do (format t "~a ~a --- ~a~%" p1 p2 rectangle)
-          thereis (intersects? rectangle (list p1 p2)))))
+(defun intersects? (p1 p2 polygon)
+  (let ((length (array-dimension polygon 0)))
+    (loop for i below length
+          for p3 = (aref polygon i)
+          for p4 = (aref polygon (mod (1+ i) length))
+            thereis (not (line-doesnt-intersect-rectangle? (list p3 p4) p1 p2)))))
 
 (defun day-09-part-2 (input-file)
   (let ((polygon (read-red-squares input-file)))
     (loop for i from 0 below (array-dimension polygon 0)
           maximize (loop for j from (1+ i) below (array-dimension polygon 0)
-                         when (contains-rectangle? polygon (rectangle-edges (aref polygon i) (aref polygon j)))
+                         when (not (intersects? (aref polygon i) (aref polygon j) polygon))
                            maximize (rectangle-area (aref polygon i) (aref polygon j))))))
 
 (defun day-09 ()
