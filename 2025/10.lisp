@@ -14,42 +14,50 @@
     (with-slots (goal buttons joltage) m
       (format stream "~a ~a ~a" goal buttons joltage))))
 
+#+or(defun prune-buttons (goal buttons)
+  (let ((light-indices (loop for i from 0 for c across goal when (char= c #\#) collect i)))
+    (loop for pset in (powerset buttons)
+          for flat = (ax:flatten pset)
+          collect flat)))
+
 (defun parse-machine (line)
-  (let* ((chunks (str:split #\Space line))
-         (goal (str:trim (first chunks) :char-bag '(#\[ #\])))
-         (joltage (ax:lastcar chunks))
-         (buttons (subseq chunks 1 (1- (length chunks))))
-         (buttons (mapcar #'string-to-num-list buttons)))
-    (make-instance 'machine :goal goal :buttons buttons :joltage joltage)))
+  (flet ((parse-lights (s)
+           (parse-integer (substitute #\0 #\. (substitute #\1 #\# (str:trim s :char-bag '(#\[ #\]))))
+                          :radix 2))
+         (parse-button (lights elements)
+           (let ((s (make-string (- (length lights) 2) :initial-element #\0)))
+             (loop for i in elements do (setf (char s i) #\1))
+             (parse-integer s :radix 2))))
+    (let* ((chunks (str:split #\Space line))
+           (goal (parse-lights (first chunks)))
+           (joltage (ax:lastcar chunks))
+           (buttons (subseq chunks 1 (1- (length chunks))))
+           (buttons (mapcar (lambda (elts) (parse-button (first chunks) elts)) (mapcar #'string-to-num-list buttons))))
+      (make-instance 'machine :goal goal :buttons buttons :joltage joltage))))
 
 (defun parse-machines (input-file)
   (mapcar #'parse-machine (uiop:read-file-lines input-file)))
-
-(defun toggle-lights (lights button)
-  (flet ((toggle (c)
-           (if (char= c #\#) #\. #\#)))
-   (let ((lights (copy-seq lights)))
-     (loop for b in button do (setf (char lights b) (toggle (char lights b))))
-     lights)))
 
 (defun minimum-presses (machine)
   (let ((q (queues:make-queue :simple-queue)))
     (loop for button in (buttons machine)
           ;; assumes at least one button press must be done, which holds for my input.
-          do (queues:qpush q (list* (make-string (length (goal machine)) :initial-element #\.) 1 button)))
+          do (queues:qpush q (list 0 1 button)))
     (loop while (plusp (queues:qsize q))
-          for state = (queues:qpop q)
-          for lights = (toggle-lights (first state) (cddr state))
-          when (string= lights (goal machine))
-            do (room) (format t "~a~%" (queues:qsize q)) and return (second state)
+          for (prev-lights n button) = (queues:qpop q)
+          for lights = (logxor prev-lights button)
+          when (= lights (goal machine))
+            ;;do #+or(room) #+or(format t "~a~%" (queues:qsize q)) and
+            return n
           do (loop for button in (buttons machine)
-                   do (queues:qpush q (list* lights (1+ (second state)) button))))))
+                   do (queues:qpush q (list lights (1+ n) button))))))
 
 (defun day-10-part-1 (input-file)
   (let ((machines (parse-machines input-file)))
     (loop for i from 0
           for machine in machines sum (minimum-presses machine)
-          do (format t "completed machine ~a~%" i))))
+          ;;do (format t "completed machine ~a~%" i)
+          )))
 
 (defun day-10-part-2 (input-file) (progn input-file -1))
 
