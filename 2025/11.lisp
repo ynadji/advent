@@ -37,11 +37,12 @@ hhh: out")
     ht))
 
 (function-cache:defcached count-all-paths (dev &optional part2? dac? fft?)
-  (cond ((eq dev 'out) (if part2?
-                           (if (and dac? fft?) 1 0)
-                           1))
-        (t (loop for next-dev in (gethash dev *dp*)
-                 sum (count-all-paths next-dev part2? (or dac? (eq dev 'dac)) (or fft? (eq dev 'fft)))))))
+  (if (eq dev 'out)
+      (if part2?
+          (if (and dac? fft?) 1 0)
+          1)
+      (loop for next-dev in (gethash dev *dp*)
+            sum (count-all-paths next-dev part2? (or dac? (eq dev 'dac)) (or fft? (eq dev 'fft))))))
 
 (defun day-11 ()
   (let* ((f (fetch-day-input-file 2025 11))
