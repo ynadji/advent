@@ -36,25 +36,15 @@ hhh: out")
                    do (push (symb (string-upcase output)) (gethash label ht))))
     ht))
 
-(function-cache:defcached find-all-paths% (dev &optional part2? dac? fft?)
+(function-cache:defcached count-all-paths (dev &optional part2? dac? fft?)
   (cond ((eq dev 'out) (if part2?
-                           (when (and dac? fft?) 'out)
-                           'out))
+                           (if (and dac? fft?) 1 0)
+                           1))
         (t (loop for next-dev in (gethash dev *dp*)
-                 collect (find-all-paths% next-dev part2? (or dac? (eq dev 'dac)) (or fft? (eq dev 'fft)))))))
-
-(defun count-all-paths (start &optional part2?)
-  (count 'out (ax:flatten (find-all-paths% start part2?))))
-
-(defun day-11-part-1 (input-file)
-  (let ((*dp* (parse-device-paths input-file)))
-    (count-all-paths 'you)))
-
-(defun day-11-part-2 (input-file)
-  (let ((*dp* (parse-device-paths input-file)))
-    (count-all-paths 'svr t)))
+                 sum (find-all-paths% next-dev part2? (or dac? (eq dev 'dac)) (or fft? (eq dev 'fft)))))))
 
 (defun day-11 ()
-  (let ((f (fetch-day-input-file 2025 11)))
-    (values (day-11-part-1 f)
-            (day-11-part-2 f))))
+  (let* ((f (fetch-day-input-file 2025 11))
+         (*dp* (parse-device-paths f)))
+    (values (count-all-paths 'you)
+            (count-all-paths 'svr t))))
