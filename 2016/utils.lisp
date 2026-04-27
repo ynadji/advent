@@ -446,14 +446,23 @@ based on TEST."
 	   (prime-factors (/ n x) (cons x acc))))
       acc))
 
+(defun cartesian-product (&rest lists)
+  (if (null lists)
+      '(())
+      (mapcan (lambda (item)
+                (mapcar (lambda (rest-combination)
+                          (cons item rest-combination))
+                        (apply #'cartesian-product (cdr lists))))
+              (car lists))))
+
 (defun powerset (lst)
   (labels ((aux (lst nlst)
-	     (if (null lst)
-		 nlst
-		 (let ((hd (car lst))
-		       (tl (cdr lst)))
-		   (aux tl (append nlst (mapcar #'(lambda (ll) (cons hd ll)) nlst)))))))
-  (aux lst '(()))))
+	         (if (null lst)
+		         nlst
+		         (let ((hd (car lst))
+		               (tl (cdr lst)))
+		           (aux tl (append nlst (mapcar #'(lambda (ll) (cons hd ll)) nlst)))))))
+    (aux lst '(()))))
 
 (defun divisors (x)
   (when (plusp x)
