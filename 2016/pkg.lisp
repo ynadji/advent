@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage :aoc2016
-  (:use :cl :arrow-macros)
+  (:use :cl :arrow-macros :aoc-utils)
   (:local-nicknames (:g :cl-graph)
                     (:ax :alexandria)
                     (:jzon :com.inuoe.jzon))

@@ -1,11 +1,11 @@
 (in-package :cl-user)
 (defpackage test-aoc2016
-  (:use #:cl #:aoc2016)
-  (:import-from #:fiveam
-                #:def-suite
-                #:in-suite
-                #:test
-                #:is)
+  (:use #:cl #:aoc2016 #:aoc-utils)
+  (:shadowing-import-from #:fiveam
+                          #:def-suite
+                          #:in-suite
+                          #:test
+                          #:is)
   (:export #:aoc2016))
 
 (in-package :test-aoc2016)
@@ -21,8 +21,8 @@
 (defmacro make-aoc-tests (test-cases)
   `(progn
      ,@(loop for (day expect1 expect2) in test-cases
-             collect `(test ,(aoc2016:symb 'test- day)
-                        (time (multiple-value-bind (res1 res2) (,(aoc2016:symb 'day- (format nil "~2,'0d" day)))
+             collect `(test ,(symb 'test- day)
+                        (time (multiple-value-bind (res1 res2) (,(symb 'day- (format nil "~2,'0d" day)))
                                 (is (equal res1 ,expect1))
                                 (is (equal res2 ,expect2))))))))
 

@@ -53,7 +53,8 @@ The fourth floor contains nothing relevant.")
          (goal-state (make-goal-state facility)))
     (flet ((goal? (state) (equal goal-state state)))
       (path-cost-so-far (a*-search (list (make-path :state facility)) #'goal? #'next-states
-                                   (lambda (x y) (declare (ignore x y)) 1) (lambda (x) (declare (ignore x)) 1) #'equal)))))
+                                   (lambda (x y) (declare (ignore x y)) 1) (lambda (x) (declare (ignore x)) 1)
+                                   #'equal)))))
 
 (defun day-11-part-1 (input-file)
   (count-elevator-steps (uiop:read-file-string input-file)))

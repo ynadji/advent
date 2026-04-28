@@ -3,10 +3,8 @@
   :description "Advent of Code 2016 solutions in Common Lisp"
   :author "Yacin Nadji <ynadji@gmail.com>"
   :license "MIT"
-  :depends-on ("str" "uiop" "alexandria" "function-cache" "serapeum" "drakma" "arrow-macros" "cl-graph" "lparallel" "magicl" "cl-ansi-text" "cl-heap" "btrie" "md5" "com.inuoe.jzon" "array-operations" "screamer")
+  :depends-on ("aoc-utils" "str" "uiop" "alexandria" "function-cache" "serapeum" "drakma" "arrow-macros" "cl-graph" "lparallel" "magicl" "cl-ansi-text" "cl-heap" "btrie" "md5" "com.inuoe.jzon" "array-operations" "screamer")
   :components ((:file "pkg")
-               (:file "utils")
-               (:file "paip-search")
                (:file "01")
                (:file "02")
                (:file "03")
@@ -37,7 +35,7 @@
 (asdf:defsystem :aoc2016/test
   :author "Yacin Nadji <ynadji@gmail.com>"
   :license "MIT"
-  :depends-on ("aoc2016" "fiveam")
+  :depends-on ("aoc2016" "aoc-utils" "fiveam")
   :components ((:file "aoc2016-tests"))
   :perform (test-op (o c) (symbol-call :fiveam '#:run!
                                        (uiop:find-symbol* '#:aoc2016

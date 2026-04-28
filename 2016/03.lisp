@@ -12,7 +12,7 @@
 (defun day-03-part-2 (input-file)
   (labels ((read-triangle-columns (input-file)
              (let ((lines (mapcar #'string-to-num-list (uiop:read-file-lines input-file))))
-               (partition (ax:flatten (transpose lines)) 3))))
+               (group (ax:flatten (transpose lines)) 3))))
     (length (remove-if-not #'triangle? (read-triangle-columns input-file)))))
 
 (defun day-03 ()
