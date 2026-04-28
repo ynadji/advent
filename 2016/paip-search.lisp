@@ -227,6 +227,7 @@
 
 (defun next2 (x) (list (+ x 1) (+ x 2)))
 
+;; TODO: Add priority queue?
 (defun a*-search (paths goal-p successors cost-fn cost-left-fn
                   &optional (state= #'eql) old-paths)
   "Find a path whose state satisfies goal-p.  Start with paths,
