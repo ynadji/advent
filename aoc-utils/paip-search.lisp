@@ -116,7 +116,7 @@
   "Search for the best path from the start to dest."
   (beam-search
     (make-path :state start)
-    (is dest :key #'path-state)
+    (equals dest :key #'path-state)
     (path-saver #'neighbors #'air-distance
                 #'(lambda (c) (air-distance c dest)))
     #'path-total-cost
@@ -151,7 +151,7 @@
   "Convert degrees and minutes to radians."
   (* (+ (truncate deg) (* (rem deg 1) 100/60)) pi 1/180))
 
-(defun is (value &key (key #'identity) (test #'eql))
+(defun equals (value &key (key #'identity) (test #'eql))
   "Returns a predicate that tests for a given value."
   #'(lambda (path) (funcall test value (funcall key path))))
 
