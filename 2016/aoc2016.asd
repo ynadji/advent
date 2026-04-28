@@ -6,6 +6,7 @@
   :depends-on ("str" "uiop" "alexandria" "function-cache" "serapeum" "drakma" "arrow-macros" "cl-graph" "lparallel" "magicl" "cl-ansi-text" "cl-heap" "btrie" "md5" "com.inuoe.jzon" "array-operations" "screamer")
   :components ((:file "pkg")
                (:file "utils")
+               (:file "paip-search")
                (:file "01")
                (:file "02")
                (:file "03")
