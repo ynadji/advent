@@ -417,7 +417,6 @@ the array ARR in place and returns it."
 (defun function-size-in-bytes (fun)
   (reduce #'+ (sb-disassem::get-fun-segments fun) :key #'sb-disassem::seg-length))
 
-(serapeum:defalias partition #'group)
 (defun partition-by (list &key (f #'identity) (test #'eql))
   "Applies F to each car in LIST, splitting it each time F returns a new value
 based on TEST."
@@ -454,6 +453,22 @@ based on TEST."
 	   (prime-factors (/ n x) (cons x acc))))
       acc))
 
+(defun cartesian-product (&rest lists)
+  (if (null lists)
+      '(())
+      (mapcan (lambda (item)
+                (mapcar (lambda (rest-combination)
+                          (cons item rest-combination))
+                        (apply #'cartesian-product (cdr lists))))
+              (car lists))))
+
+(defun combinations-with-replacement (list k)
+  (cond ((zerop k) (list nil))
+        ((null list) nil)
+        (t (append (mapcar (lambda (c) (cons (car list) c))
+                           (combinations-with-replacement list (1- k)))
+                   (combinations-with-replacement (cdr list) k)))))
+
 (defun powerset (lst)
   (labels ((aux (lst nlst)
 	     (if (null lst)
@@ -488,7 +503,13 @@ based on TEST."
         ((> k n) 0)
         (t (+ (* k (stirling-2nd (1- n) k))
               (stirling-2nd (1- n) (1- k))))))
-;; define COMBINATIONS
+
+(defun combinations (items k)
+  (cond ((zerop k) '(()))
+        ((null items) '())
+        (t (nconc (mapcar (lambda (c) (cons (car items) c))
+                          (combinations (cdr items) (1- k)))
+                  (combinations (cdr items) k)))))
 
 ;; how do i uhh define pack N balls into M bins?
 ;; for all (combinations M balls) (as balls1)
