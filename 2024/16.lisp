@@ -59,13 +59,6 @@
             (aoc-utils:min-score-state (loop for dir in *cardinals* collect (make-instance 'state :dir dir :pos (second starts))) dist)
           (values min-score prev min-state start))))))
 
-;; TODO: Maybe worth adding to utils?
-(defun walk-back (prev state start-state)
-  (if (state-pos= state start-state)
-      (cons start-state nil)
-      (let ((next-states (gethash state prev)))
-        (loop for next-state in next-states append (cons state (walk-back prev next-state start-state))))))
-
 (defun day-16-part-2 (input-file &optional prev min-state start)
   (if (and prev min-state start)
       (length (remove-duplicates (walk-back prev min-state start) :test #'state-pos=))
