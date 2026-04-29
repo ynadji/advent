@@ -25,6 +25,18 @@
   (solve-maze (make-grid (parse-integer (uiop:read-file-string input-file)))
               '(1 . 1) '(39 . 31)))
 
+;;; huh what vector is getting allocated? dynamic extent maybe?
+;;;
+;;; AOC2016> (sb-sprof:with-profiling (:report :flat :loop t :max-samples 1000 :show-progress t) (day-13))
+;;; ...
+;;;            Self        Total        Cumul
+;;;   Nr  Count     %  Count     %  Count     %    Calls  Function
+;;; ------------------------------------------------------------------------
+;;;    1    621  62.1    621  62.1    621  62.1        -  ALLOCATE-VECTOR-ON-HEAP
+;;;    2    616  61.6    616  61.6   1237 123.7        -  EQL
+;;;    3    517  51.7    517  51.7   1754 175.4        -  foreign function __bzero
+;;;    4    500  50.0   3822 382.2   2254 225.4        -  MAKE-GRID
+
 (defun day-13 ()
   (let ((f (fetch-day-input-file 2016 13)))
     (day-13% f)))
