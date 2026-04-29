@@ -1,9 +1,12 @@
 (in-package :aoc2016)
 
 (defun wall? (x y fav-num)
-  (let ((num (+ fav-num (* x x) (* 3 x) (* 2 x y) y (* y y))))
-    (oddp (count #\1 (format nil "~b" num)))))
+  (declare (optimize speed)
+           (type fixnum x y fav-num))
+  (let ((num (the fixnum (+ fav-num (* x x) (* 3 x) (* 2 x y) y (* y y)))))
+    (oddp (logcount num))))
 
+;; TODO: Most of the time is from making the grid. If you just did math for the successors it would probably be instant.
 (defun make-grid (fave-num)
   (let ((grid (make-array (list fave-num fave-num) :element-type 'standard-char)))
     (aops:each-index (i j)
@@ -24,18 +27,6 @@
 (defun day-13% (input-file)
   (solve-maze (make-grid (parse-integer (uiop:read-file-string input-file)))
               '(1 . 1) '(39 . 31)))
-
-;;; huh what vector is getting allocated? dynamic extent maybe?
-;;;
-;;; AOC2016> (sb-sprof:with-profiling (:report :flat :loop t :max-samples 1000 :show-progress t) (day-13))
-;;; ...
-;;;            Self        Total        Cumul
-;;;   Nr  Count     %  Count     %  Count     %    Calls  Function
-;;; ------------------------------------------------------------------------
-;;;    1    621  62.1    621  62.1    621  62.1        -  ALLOCATE-VECTOR-ON-HEAP
-;;;    2    616  61.6    616  61.6   1237 123.7        -  EQL
-;;;    3    517  51.7    517  51.7   1754 175.4        -  foreign function __bzero
-;;;    4    500  50.0   3822 382.2   2254 225.4        -  MAKE-GRID
 
 (defun day-13 ()
   (let ((f (fetch-day-input-file 2016 13)))
