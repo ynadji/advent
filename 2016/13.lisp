@@ -10,22 +10,21 @@
       (setf (aref grid i j) (if (wall? j i fave-num) #\# #\.)))
     grid))
 
-;; (39 . 31)
 (defun solve-maze (grid &optional (start '(1 . 1)) (end '(4 . 7)))
   (flet ((successors (pos)
            (2d-neighbors grid pos :reachable? (lambda (m pos dir)
                                                 (declare (ignore dir))
-                                                (char= #\. (paref m pos)))))
-         (finished? (pos) (equal pos end)))
-    (path-cost-so-far (a*-search (list (make-path :state start)) #'finished? #'successors (lambda (x y) (declare (ignore x y)) 1) (lambda (x) (declare (ignore x)) 1) #'equal))))
+                                                (char= #\. (paref m pos))))))
+    (multiple-value-bind (path old-paths)
+        (graph-search (list (make-path :state start)) (equals end :key #'path-state :test #'equal) (path-saver #'successors (constantly 1) (constantly 1)) #'prepend (lambda (x y) (equal (path-state x) (path-state y))))
+      (values (path-cost-so-far path)
+              (loop for path in old-paths
+                    count (<= (path-cost-so-far path) 50))))))
 
-(defun day-13-part-1 (input-file)
+(defun day-13% (input-file)
   (solve-maze (make-grid (parse-integer (uiop:read-file-string input-file)))
               '(1 . 1) '(39 . 31)))
 
-(defun day-13-part-2 (input-file) (progn input-file -1))
-
 (defun day-13 ()
   (let ((f (fetch-day-input-file 2016 13)))
-    (values (day-13-part-1 f)
-            (day-13-part-2 f))))
+    (day-13% f)))

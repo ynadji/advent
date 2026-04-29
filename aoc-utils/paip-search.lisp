@@ -207,7 +207,7 @@
   Don't try the same state twice."
   (dbg :search "~&;; Search: ~a" states)
   (cond ((null states) fail)
-        ((funcall goal-p (first states)) (first states))
+        ((funcall goal-p (first states)) (values (first states) old-states))
         (t (graph-search
             (funcall
              combiner
