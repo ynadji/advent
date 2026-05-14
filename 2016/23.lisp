@@ -1,10 +1,15 @@
 (in-package :aoc2016)
 
-(defun day-23-part-1 (input-file) (progn input-file -1))
-
-(defun day-23-part-2 (input-file) (progn input-file -1))
+(defparameter test-input "cpy 2 a
+tgl a
+tgl a
+tgl a
+cpy 1 a
+dec a
+dec a")
 
 (defun day-23 ()
   (let ((f (fetch-day-input-file 2016 23)))
-    (values (day-23-part-1 f)
-            (day-23-part-2 f))))
+    (values (day-12% f :a 7)
+            ;; runs in ~39 seconds without multiply optimization so w/e d;D
+            (day-12% f :a 12))))
