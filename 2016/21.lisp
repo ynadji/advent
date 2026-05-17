@@ -49,7 +49,6 @@ rotate based on position of letter d")
   s)
 
 (defun nrotate (s n)
-  (declare (optimize debug))
   (let* ((len (length s))
          (k (mod n len)))
     (when (and (plusp len) (plusp k))
