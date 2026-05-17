@@ -25,8 +25,9 @@ dec a")
   (let ((op (first inst))
         (v1 (second inst)))
     (ecase op
-      (|tgl| (values (gethash v1 registers)))
-      (|cpy| (if (numberp v1) ; day 23
+      (|out| (if (numberp v1) v1 (values (gethash v1 registers)))) ; day 25
+      (|tgl| (values (gethash v1 registers))) ; day 23
+      (|cpy| (if (numberp v1)
                  (setf (gethash (third inst) registers) v1)
                  (setf (gethash (third inst) registers) (gethash v1 registers))))
       (|inc| (incf (gethash v1 registers)))
@@ -35,11 +36,19 @@ dec a")
                      (let ((v2 (third inst)))
                        (if (numberp v2) v2 (gethash v2 registers))))))))
 
-(defun day-12% (input-file &key (a 0) (b 0) (c 0) (d 0))
+(defun alternating-1-0 (list)
+  (loop for (x y) on list while y
+        always (or (and (zerop x) (= 1 y))
+                   (and (= 1 x) (zerop y)))))
+
+(defun day-12% (input-file &key (a 0) (b 0) (c 0) (d 0) (min-output-length 10))
+  (declare (optimize debug))
   (let* ((registers (ax:alist-hash-table `((|a| . ,a) (|b| . ,b) (|c| . ,c) (|d| . ,d))))
          (instructions (mapcar #'parse-instruction-line (uiop:read-file-lines input-file)))
          (instructions (make-array (length instructions) :initial-contents instructions))
-         (pc 0))
+         (pc 0)
+         (output '())                   ; day 25
+         )
     (loop while (array-in-bounds-p instructions pc)
           for (r1 r2) = (multiple-value-list (run-assembunny (aref instructions pc) registers))
           for op = (first (aref instructions pc))
@@ -51,6 +60,12 @@ dec a")
                  do (incf pc r2)
           else
             do (incf pc 1)
+               (when (eq '|out| op) ; day 25
+                 (push r1 output)
+                 (if (alternating-1-0 output)
+                     (when (> (length output) min-output-length)
+                       (return output))
+                     (return nil)))
           finally (return (values (gethash '|a| registers)
                                   registers)))))
 
