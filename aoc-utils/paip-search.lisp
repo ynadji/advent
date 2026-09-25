@@ -217,13 +217,34 @@
             (adjoin (first states) old-states
                     :test state=)))))
 
+(defun graph-search-all (states goal-p successors combiner
+                         &optional (state= #'eql) old-states successful-states)
+  "Find all states that satisfies goal-p. Start with states,
+  and search according to successors and combiner.
+  Don't try the same state twice."
+  (dbg :search "~&;; Search: ~a" states)
+  (cond ((null states) (or successful-states fail))
+        ((funcall goal-p (first states))
+         (graph-search-all (rest states) goal-p successors combiner state=
+                           (adjoin (first states) old-states :test state=)
+                           (cons (first states) successful-states)))
+        (t (graph-search-all
+            (funcall
+             combiner
+             (new-states states successors state= old-states)
+             (rest states))
+            goal-p successors combiner state=
+            (adjoin (first states) old-states
+                    :test state=)
+            successful-states))))
+
 (defun new-states (states successors state= old-states)
   "Generate successor states that have not been seen before."
   (remove-if
-    #'(lambda (state)
-        (or (member state states :test state=)
-            (member state old-states :test state=)))
-    (funcall successors (first states))))
+   #'(lambda (state)
+       (or (member state states :test state=)
+           (member state old-states :test state=)))
+   (funcall successors (first states))))
 
 (defun next2 (x) (list (+ x 1) (+ x 2)))
 
