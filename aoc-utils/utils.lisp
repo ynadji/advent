@@ -511,6 +511,14 @@ based on TEST."
                           (combinations (cdr items) (1- k)))
                   (combinations (cdr items) k)))))
 
+(defun permutations (list)
+  (if (null list)
+      '(())
+      (mapcan (lambda (x)
+                (mapcar (lambda (p) (cons x p))
+                        (permutations (remove x list :count 1))))
+              list)))
+
 ;; how do i uhh define pack N balls into M bins?
 ;; for all (combinations M balls) (as balls1)
 ;; for all (combinations M (set- balls above-balls) (as balls2)
