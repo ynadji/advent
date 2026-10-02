@@ -84,20 +84,20 @@ a unique identifier that maps X to a unique, increasing integer."
                                                               :domain "adventofcode.com"
                                                               :value session-cookie))))
 
-(let ((session-cookie (-> #P"~/.aoc-session-cookie" uiop:read-file-string str:trim)))
-  (defun fetch-day-input-file (year day)
-    (let ((cached-file (format nil "~a-input.txt" day))
-          (url (format nil "https://adventofcode.com/~a/day/~a/input" year day)))
-      (ax:if-let ((path (probe-file cached-file)))
-        path
-        (progn
-          (with-open-file (out cached-file :if-does-not-exist :create :direction :output)
-            (let ((puzzle-input (drakma:http-request url :cookie-jar (make-cookie-jar session-cookie))))
-              (if (string/= puzzle-input "Puzzle inputs differ by user.  Please log in to get your puzzle input.
+(defun fetch-day-input-file (year day)
+  (let ((cached-file (format nil "~a-input.txt" day))
+        (url (format nil "https://adventofcode.com/~a/day/~a/input" year day))
+        (session-cookie (-> #P"~/.aoc-session-cookie" uiop:read-file-string str:trim)))
+    (ax:if-let ((path (probe-file cached-file)))
+      path
+      (progn
+        (with-open-file (out cached-file :if-does-not-exist :create :direction :output)
+          (let ((puzzle-input (drakma:http-request url :cookie-jar (make-cookie-jar session-cookie))))
+            (if (string/= puzzle-input "Puzzle inputs differ by user.  Please log in to get your puzzle input.
 ")
-                  (princ puzzle-input out)
-                  (error "Not logged in! Update ~~/.aoc-session-cookie with the correct cookie value!"))))
-          (probe-file cached-file))))))
+                (princ puzzle-input out)
+                (error "Not logged in! Update ~~/.aoc-session-cookie with the correct cookie value!"))))
+        (probe-file cached-file)))))
 
 (defvar *day-template* "(in-package :aoc~a)
 
@@ -414,6 +414,7 @@ the array ARR in place and returns it."
   "Return a list of all numbers in STRING."
   (mapcar #'parse-integer (ppcre:all-matches-as-strings "[-\\d]+" string)))
 
+#+sbcl
 (defun function-size-in-bytes (fun)
   (reduce #'+ (sb-disassem::get-fun-segments fun) :key #'sb-disassem::seg-length))
 
@@ -532,6 +533,7 @@ based on TEST."
 
 ;;; dijkstra stuff
 ;; just make DIST the 3D array!
+#+sbcl
 (defun initialize-dist (maze &optional (class 'state) (non-states '(#\#)))
   (let ((dist (make-hash-table :test #'state= :size (array-total-size maze)))
         (arr (make-array (append (array-dimensions maze) '(4)) :initial-element nil)))
@@ -546,6 +548,7 @@ based on TEST."
 
 ;; TODO: subclass cl-heap:fibonacci-heap to also track HEAP-MAP internally so
 ;; you can just do decrease-key directly with whatever you're storing.
+#+sbcl
 (defun make-heap (dist)
   (flet ((my-key (obj &rest values)
            (if values
@@ -612,9 +615,13 @@ based on TEST."
 (defun sxhash-pos (s)
   (sxhash (pos s)))
 
+#+sbcl
 (sb-ext:define-hash-table-test state= sxhash-state)
+#+sbcl
 (sb-ext:define-hash-table-test state-pos= sxhash-pos)
 
+;; NB: this is only needed if TEST isn't EQ/EQL/EQUAL since SBCL/LispWorks already do this optimization. If they aren't
+;; you'll have to define the hash table tests so idk how useful this is to have anymore.
 (defun fast-remove-duplicates (seq &key (test #'eql))
   (let ((ht (make-hash-table :test test :size (length seq))))
     (loop for x in seq do (setf (gethash x ht) t)
@@ -655,6 +662,7 @@ based on TEST."
               (setf (aref state-grid i j k) state)))))))
   grid)
 
+#+sbcl
 (defclass dijkstra-grid (algo-grid)
   ((starts :accessor starts :initarg :starts :initform (error "Must provide STARTS to initialize DIJKSTRA-GRID."))
    (dist :accessor dist :initform (make-hash-table :test #'state=))
@@ -663,6 +671,7 @@ based on TEST."
    (heap-map :accessor heap-map :initform nil))
   (:documentation "Dijkstra algorithm grid."))
 
+#+sbcl
 (defmethod initialize-instance :after ((grid dijkstra-grid) &key)
   (with-slots (state-grid dist prev heap heap-map starts) grid
     (loop for i below (array-dimension state-grid 0) do
@@ -677,6 +686,7 @@ based on TEST."
 
 ;; REACHABLE? should just take the GRID and STATE. This way. the function isn't so specific to POS and DIR. does this
 ;; mean we'll be spending a bunch of time making new states? How do we generically make states though??
+#+sbcl
 (defun dijkstra (starts maze &key
                                (cost-fn (lambda (s0 s1)
                                           (declare (ignore s0 s1))
