@@ -13,15 +13,18 @@
       (setf (aref grid i j) (if (wall? j i fave-num) #\# #\.)))
     grid))
 
+(defun 13-path-state= (x y) (equal (path-state x) (path-state y)))
+
 (defun solve-maze (grid &optional (start '(1 . 1)) (end '(4 . 7)))
   (flet ((successors (pos)
            (2d-neighbors grid pos :reachable? (lambda (m pos dir)
                                                 (declare (ignore dir))
                                                 (char= #\. (paref m pos))))))
+    (sb-ext:define-hash-table-test 13-path-state= (lambda (s) (sxhash (path-state s))))
     (multiple-value-bind (path old-paths)
-        (graph-search (list (make-path :state start)) (equals end :key #'path-state :test #'equal) (path-saver #'successors (constantly 1) (constantly 1)) #'prepend (lambda (x y) (equal (path-state x) (path-state y))))
+        (graph-search (list (make-path :state start)) (equals end :key #'path-state :test #'equal) (path-saver #'successors (constantly 1) (constantly 1)) #'prepend #'13-path-state=)
       (values (path-cost-so-far path)
-              (loop for path in old-paths
+              (loop for path being the hash-key of old-paths
                     count (<= (path-cost-so-far path) 50))))))
 
 (defun day-13% (input-file)

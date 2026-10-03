@@ -27,6 +27,8 @@
   (and (equal (car s1) (car s2))
        (equal (caddr s1) (caddr s2))))
 
+(sb-ext:define-hash-table-test 24-state= (lambda (s) (sxhash `(,(car s) (caddr s)))))
+
 (defun 24-successors (state)
   (multiple-value-bind (positions directions)
       (2d-neighbors *grid* (caddr state) :reachable? #'24-reachable?)
