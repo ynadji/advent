@@ -13,25 +13,42 @@ Filesystem            Size  Used  Avail  Use%
 /dev/grid/node-x2-y2    9T    6T     3T   66%")
 
 (defun parse-drives (input-file)
-  (coerce (loop for df in (cddr (uiop:read-file-lines input-file))
-                collect (string-to-num-list (remove #\- df)))
-          'vector))
+  (stable-sort (loop for df in (cddr (uiop:read-file-lines input-file))
+                     collect (string-to-num-list (remove #\- df)))
+               #'< :key #'second))
 
 (defun count-viable-pairs (drives)
-  (loop for i from 0 below (length drives)
-        sum (loop for j from 0 below (length drives)
-                  for a = (aref drives i)
-                  for b = (aref drives j)
-                  count (and (/= i j)
-                             (plusp (fourth a))
-                             (< (fourth a) (fifth b))))))
+  (let ((drives (coerce drives 'vector)))
+   (loop for i from 0 below (length drives)
+         sum (loop for j from 0 below (length drives)
+                   for a = (aref drives i)
+                   for b = (aref drives j)
+                   count (and (/= i j)
+                              (plusp (fourth a))
+                              (< (fourth a) (fifth b)))))))
+
+(defun print-drives (drives &optional (stream t))
+  (let ((prev-y 0))
+    (loop for (x y size used avail use%) in drives
+          when (> y prev-y)
+            do (format stream "~%")
+               (setf prev-y y)
+          do (if (zerop used)
+                 (format stream "__/~2,'0d " size)
+                 (if (>= 100 used)
+                     (format stream "~2,'0d/~2,'0d " used size)
+                     (format stream "XX/XX "))))))
 
 (defun day-22-part-1 (input-file)
   (count-viable-pairs (parse-drives input-file)))
 
-(defun day-22-part-2 (input-file) (progn input-file -1))
+(defun day-22-part-2 ()
+  ;; from inspection from printing out the grid. 66 to make hole move to upper
+  ;; right. takes 5 steps to move data one drive to the left and 36 drive
+  ;; movements to make.
+  (+ 66 (* 36 5)))
 
 (defun day-22 ()
   (let ((f (fetch-day-input-file 2016 22)))
     (values (day-22-part-1 f)
-            (day-22-part-2 f))))
+            (day-22-part-2))))
