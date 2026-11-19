@@ -720,6 +720,13 @@ based on TEST."
                               (pushnew state (gethash new-state prev) :test #'state=)))))
         (values dist prev heap)))))
 
+(defun argmax (list &optional (func #'identity))
+  (loop for i from 0 for x in list with max = most-negative-fixnum and max-i = nil
+        for val = (funcall func x)
+        when (> val max)
+          do (setf max-i i max val)
+        finally (return (values max-i max))))
+
 ;; export all symbols
 (let ((pack (find-package :aoc-utils)))
   (do-all-symbols (sym pack) (when (eql (symbol-package sym) pack) (export sym))))
